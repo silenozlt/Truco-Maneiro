@@ -151,13 +151,17 @@ function GameContent() {
   const currentTurnPlayer = gameState.players.get(gameState.currentTurn);
   const currentPlayerName = currentTurnPlayer?.name || '';
 
+  // Mao de 10: any team with 10+ points, no truco allowed
+  const isMaoDe10 = myTeamScore >= 10 || theirTeamScore >= 10;
+
   // Can call truco?
   const lastTrucoCallerTeam = gameState.trucoCall?.calledByTeam;
   const canTruco =
     gameState.phase === 'playing' &&
     isMyTurn &&
     (trucoLevel === -1 || trucoLevel < 12) &&
-    lastTrucoCallerTeam !== myPlayer.team;
+    lastTrucoCallerTeam !== myPlayer.team &&
+    !isMaoDe10;
 
   // Truco dialog
   const showTrucoDialog = gameState.phase === 'truco_called' && gameState.trucoCall;

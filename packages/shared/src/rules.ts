@@ -172,7 +172,13 @@ export function canCallTruco(
   pendingTrucoCall: TrucoCall | null,
   playerTeam: TeamId,
   lastTrucoCallerTeam: TeamId | null,
+  teams?: [TeamState, TeamState],
 ): boolean {
+  // Mao de 10: no truco allowed when any team has 10+ points
+  if (teams && isMaoDe10(teams)) {
+    return false;
+  }
+
   // If there's a pending call, can't call again
   if (pendingTrucoCall && pendingTrucoCall.status === 'pending') {
     return false;
@@ -228,6 +234,14 @@ export function getWinner(teams: [TeamState, TeamState]): TeamId | null {
  */
 export function isMaoDeFerro(teams: [TeamState, TeamState]): boolean {
   return teams[0].score >= 10 && teams[1].score >= 10;
+}
+
+/**
+ * Checks if it's "mão de 10" — any team has 10+ points.
+ * In mão de 10, truco is not allowed (hand is worth 4 points automatically).
+ */
+export function isMaoDe10(teams: [TeamState, TeamState]): boolean {
+  return teams[0].score >= 10 || teams[1].score >= 10;
 }
 
 /**

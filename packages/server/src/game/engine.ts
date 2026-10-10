@@ -25,6 +25,7 @@ import {
   getPlayOrder,
   getNextTurn,
   isMaoDeFerro,
+  isMaoDe10,
   type Card,
   type PlayedCard,
   type Round,
@@ -117,8 +118,13 @@ export function startNewHand(state: TrucoGameState): void {
   const hand = new HandSchema();
   hand.dealerPosition = state.dealerPosition;
   hand.currentRound = 0;
+  // Mao de 10: hand is worth 4 points, no truco allowed
+  const maoDe10 = isMaoDe10([
+    { score: state.teams[0].score, players: [] },
+    { score: state.teams[1].score, players: [] },
+  ]);
   hand.trucoLevel = -1;
-  hand.points = 2;
+  hand.points = maoDe10 ? 4 : 2;
   hand.winner = -1;
   hand.complete = false;
 
@@ -363,7 +369,11 @@ export function callTruco(state: TrucoGameState, playerId: string): boolean {
   const currentLevel = hand.trucoLevel === -1 ? null : (hand.trucoLevel as TrucoLevel);
   const lastCallerTeam = state.trucoCall ? state.trucoCall.calledByTeam as TeamId : null;
 
-  if (!canCallTruco(currentLevel, null, player.team as TeamId, lastCallerTeam)) {
+  const teams: [{ score: number; players: [] }, { score: number; players: [] }] = [
+    { score: state.teams[0].score, players: [] },
+    { score: state.teams[1].score, players: [] },
+  ];
+  if (!canCallTruco(currentLevel, null, player.team as TeamId, lastCallerTeam, teams)) {
     return false;
   }
 
