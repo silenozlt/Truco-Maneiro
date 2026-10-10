@@ -145,19 +145,11 @@ export default function Home() {
           Jogar vs Computador
         </Button>
 
-        <div className="flex gap-4 justify-center mt-2">
-          <button
-            onClick={() => router.push('/regras')}
-            className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer"
-          >
-            Regras
-          </button>
-          <button
-            onClick={() => router.push('/stats')}
-            className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer"
-          >
-            Estatisticas
-          </button>
+        <div className="flex flex-wrap gap-3 sm:gap-4 justify-center mt-2">
+          <button onClick={() => router.push('/regras')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Regras</button>
+          <button onClick={() => router.push('/stats')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Estatisticas</button>
+          <button onClick={() => router.push('/assistir')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Assistir</button>
+          <button onClick={() => router.push('/replay')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Replays</button>
         </div>
       </div>
 

@@ -33,7 +33,23 @@ export async function joinRoom(roomId: string, playerName: string): Promise<Room
   return room;
 }
 
+export async function joinAsSpectator(roomId: string): Promise<Room> {
+  const c = getClient();
+  const room = await c.joinById(roomId, { spectator: true });
+  return room;
+}
+
 export async function getAvailableRooms() {
   const c = getClient();
   return c.getAvailableRooms('truco');
+}
+
+export async function getActiveRooms(): Promise<Array<{ roomId: string; clients: number }>> {
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  try {
+    const res = await fetch(`http://${hostname}:3001/rooms`);
+    return res.json();
+  } catch {
+    return [];
+  }
 }

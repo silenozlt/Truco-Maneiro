@@ -20,13 +20,23 @@ import {
   type TeamId,
 } from '@truco/shared';
 
+export interface ReplayAction {
+  ts: number;
+  action: string;
+  playerId?: string;
+  data?: any;
+}
+
 export class TrucoRoom extends Room<TrucoGameState> {
-  maxClients = 4;
+  maxClients = 20; // 4 players + spectators
   private aiTimers: Map<string, NodeJS.Timeout> = new Map();
   private handEndTimer: NodeJS.Timeout | null = null;
   private trucoResponseTimer: NodeJS.Timeout | null = null;
   private static readonly TRUCO_TIMEOUT_MS = 10_000;
   private aiDifficulty: AIDifficulty = 'medium';
+  private spectators: Set<string> = new Set();
+  private replayLog: ReplayAction[] = [];
+  private gameStartTime: number = 0;
 
   onCreate(options: any) {
     this.setState(new TrucoGameState());
@@ -35,29 +45,39 @@ export class TrucoRoom extends Room<TrucoGameState> {
       this.aiDifficulty = options.difficulty as AIDifficulty;
     }
 
-    // Register message handlers
+    // Register message handlers (spectators cannot act)
     this.onMessage('play_card', (client, data: { cardIndex: number }) => {
+      if (this.spectators.has(client.sessionId)) return;
       this.handlePlayCard(client.sessionId, data.cardIndex);
     });
 
     this.onMessage('call_truco', (client) => {
+      if (this.spectators.has(client.sessionId)) return;
       this.handleCallTruco(client.sessionId);
     });
 
     this.onMessage('respond_truco', (client, data: { response: 'accept' | 'run' | 'raise' }) => {
+      if (this.spectators.has(client.sessionId)) return;
       this.handleRespondTruco(client.sessionId, data.response);
     });
 
     this.onMessage('start_game', (client) => {
+      if (this.spectators.has(client.sessionId)) return;
       this.handleStartGame();
     });
 
     this.onMessage('add_bot', (client, data: { position?: number }) => {
+      if (this.spectators.has(client.sessionId)) return;
       this.handleAddBot(data.position);
     });
 
     this.onMessage('restart_game', (client) => {
+      if (this.spectators.has(client.sessionId)) return;
       this.handleRestartGame();
+    });
+
+    this.onMessage('get_replay', (client) => {
+      client.send('replay_data', { actions: this.replayLog, startTime: this.gameStartTime });
     });
 
     this.onMessage('chat', (client, data: { message: string }) => {
@@ -75,9 +95,22 @@ export class TrucoRoom extends Room<TrucoGameState> {
     console.log(`Room ${this.roomId} created`);
   }
 
-  onJoin(client: Client, options: { name?: string } = {}) {
+  onJoin(client: Client, options: { name?: string; spectator?: boolean } = {}) {
+    if (options.spectator) {
+      this.spectators.add(client.sessionId);
+      this.state.spectatorCount = this.spectators.size;
+      console.log(`Spectator joined room ${this.roomId} (${this.spectators.size} spectators)`);
+      return;
+    }
+
     const position = this.getNextAvailablePosition();
-    if (position === null) return;
+    if (position === null) {
+      // No position available, join as spectator
+      this.spectators.add(client.sessionId);
+      this.state.spectatorCount = this.spectators.size;
+      console.log(`Room full, ${client.sessionId} joined as spectator`);
+      return;
+    }
 
     const player = new PlayerSchema();
     player.id = client.sessionId;
@@ -95,6 +128,13 @@ export class TrucoRoom extends Room<TrucoGameState> {
   }
 
   onLeave(client: Client, consented: boolean) {
+    // Spectator leaving
+    if (this.spectators.has(client.sessionId)) {
+      this.spectators.delete(client.sessionId);
+      this.state.spectatorCount = this.spectators.size;
+      return;
+    }
+
     const player = this.state.players.get(client.sessionId);
     if (!player) return;
 
@@ -124,9 +164,16 @@ export class TrucoRoom extends Room<TrucoGameState> {
 
   // === Game Logic Handlers ===
 
+  private logReplay(action: string, playerId?: string, data?: any) {
+    this.replayLog.push({ ts: Date.now() - this.gameStartTime, action, playerId, data });
+  }
+
   private handlePlayCard(playerId: string, cardIndex: number) {
+    const player = this.state.players.get(playerId);
+    const card = player?.hand?.[cardIndex];
     const success = playCard(this.state, playerId, cardIndex);
     if (success) {
+      this.logReplay('play_card', playerId, { cardIndex, card: card ? { suit: card.suit, rank: card.rank } : null });
       this.afterAction();
     }
   }
@@ -134,6 +181,7 @@ export class TrucoRoom extends Room<TrucoGameState> {
   private handleCallTruco(playerId: string) {
     const success = callTruco(this.state, playerId);
     if (success) {
+      this.logReplay('call_truco', playerId, { level: this.state.trucoCall?.level });
       this.startTrucoTimer();
       this.afterAction();
     }
@@ -143,7 +191,7 @@ export class TrucoRoom extends Room<TrucoGameState> {
     this.clearTrucoTimer();
     const success = respondTruco(this.state, playerId, response);
     if (success) {
-      // If it was a raise, start a new timer for the other team
+      this.logReplay('respond_truco', playerId, { response });
       if (response === 'raise') {
         this.startTrucoTimer();
       }
@@ -156,6 +204,11 @@ export class TrucoRoom extends Room<TrucoGameState> {
       console.log('Not enough players to start');
       return;
     }
+    this.gameStartTime = Date.now();
+    this.replayLog = [];
+    const playerNames: Record<string, string> = {};
+    this.state.players.forEach((p: PlayerSchema) => { playerNames[p.id] = p.name; });
+    this.logReplay('game_start', undefined, { playerNames });
     startGame(this.state);
     this.afterAction();
   }
@@ -187,6 +240,11 @@ export class TrucoRoom extends Room<TrucoGameState> {
     if (this.handEndTimer) clearTimeout(this.handEndTimer);
     this.clearTrucoTimer();
 
+    this.gameStartTime = Date.now();
+    this.replayLog = [];
+    const playerNames: Record<string, string> = {};
+    this.state.players.forEach((p: PlayerSchema) => { playerNames[p.id] = p.name; });
+    this.logReplay('game_start', undefined, { playerNames });
     startGame(this.state);
     this.afterAction();
   }
@@ -252,6 +310,15 @@ export class TrucoRoom extends Room<TrucoGameState> {
    * Called after any game action to check for AI turns and hand transitions.
    */
   private afterAction() {
+    // If game over, log it and broadcast replay
+    if (this.state.phase === 'game_over') {
+      this.logReplay('game_over', undefined, {
+        winner: this.state.winner,
+        scores: [this.state.teams[0]?.score, this.state.teams[1]?.score],
+      });
+      this.broadcast('replay_data', { actions: this.replayLog, startTime: this.gameStartTime });
+    }
+
     // If hand ended, schedule next hand
     if (this.state.phase === 'hand_end' && this.state.winner === -1) {
       if (this.handEndTimer) clearTimeout(this.handEndTimer);

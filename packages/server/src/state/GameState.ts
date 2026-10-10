@@ -116,6 +116,7 @@ export class TrucoGameState extends Schema {
   playOrder = new ArraySchema<string>();
   winner: number = -1; // -1 = null
   playerCount: number = 0;
+  spectatorCount: number = 0;
 
   // For broadcasting messages
   lastEvent: string = '';
@@ -132,6 +133,7 @@ defineTypes(TrucoGameState, {
   playOrder: ['string'],
   winner: 'int8',
   playerCount: 'uint8',
+  spectatorCount: 'uint8',
   lastEvent: 'string',
   lastEventData: 'string',
 });

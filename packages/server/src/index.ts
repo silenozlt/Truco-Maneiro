@@ -25,6 +25,23 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', rooms: gameServer.matchMaker?.stats?.local || 0 });
 });
 
+// List active rooms for spectator mode
+app.get('/rooms', async (_req, res) => {
+  try {
+    const rooms = await (gameServer.matchMaker as any).query({ name: 'truco' });
+    const list = rooms.map((r: any) => ({
+      roomId: r.roomId,
+      clients: r.clients,
+      maxClients: r.maxClients,
+      metadata: r.metadata,
+      locked: r.locked,
+    }));
+    res.json(list);
+  } catch {
+    res.json([]);
+  }
+});
+
 const PORT = parseInt(process.env.PORT || '3001');
 
 gameServer.listen(PORT, '0.0.0.0').then(() => {

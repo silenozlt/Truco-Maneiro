@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Room } from 'colyseus.js';
 import { createRoom, joinRoom } from '../lib/colyseus';
+import { saveReplay } from '../lib/replays';
 
 export interface ChatMessage {
   playerId: string;
@@ -184,6 +185,12 @@ export function useColyseus() {
 
     r.onMessage('chat', (msg: { playerId: string; playerName: string; team: number; message: string }) => {
       setChatMessages(prev => [...prev.slice(-49), { ...msg, timestamp: Date.now() }]);
+    });
+
+    r.onMessage('replay_data', (data: { actions: any[]; startTime: number }) => {
+      if (data.actions?.length > 0) {
+        saveReplay(data.actions, data.startTime);
+      }
     });
 
     r.onLeave((code: number) => {
