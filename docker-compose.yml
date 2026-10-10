@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      target: server
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET:-truco-mineiro-secret-change-me}
+      - DB_PATH=/data/truco.db
+    volumes:
+      - db-data:/data
+    restart: unless-stopped
+
+  client:
+    build:
+      context: .
+      target: client
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_COLYSEUS_URL=ws://localhost:3001
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  db-data:

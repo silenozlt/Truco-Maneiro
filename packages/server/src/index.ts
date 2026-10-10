@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { TrucoRoom } from './rooms/TrucoRoom';
+import { registerUser, loginUser, generateToken, verifyToken, getUserStats, saveMatch } from './auth';
 
 const app = express();
 app.use(cors());
@@ -19,6 +20,48 @@ const gameServer = new Server({
 
 // Register room
 gameServer.define('truco', TrucoRoom);
+
+// Auth routes
+app.post('/auth/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await registerUser(username, password);
+    const token = generateToken(user);
+    res.json({ token, user: { id: user.id, username: user.username } });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await loginUser(username, password);
+    const token = generateToken(user);
+    res.json({ token, user: { id: user.id, username: user.username } });
+  } catch (err: any) {
+    res.status(401).json({ error: err.message });
+  }
+});
+
+app.get('/auth/me', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Token ausente' });
+  const user = verifyToken(auth.slice(7));
+  if (!user) return res.status(401).json({ error: 'Token invalido' });
+  const stats = getUserStats(user.id);
+  res.json({ user, stats });
+});
+
+app.post('/auth/match', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Token ausente' });
+  const user = verifyToken(auth.slice(7));
+  if (!user) return res.status(401).json({ error: 'Token invalido' });
+  const { won, myScore, theirScore, difficulty } = req.body;
+  saveMatch(user.id, won, myScore, theirScore, difficulty || 'medium');
+  res.json({ ok: true });
+});
 
 // Health check
 app.get('/health', (_req, res) => {
