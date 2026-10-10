@@ -13,7 +13,7 @@ import {
   scheduleNextHand,
   startNewHand,
 } from '../game/engine';
-import { getAIDecision, getAIDelay } from '../game/ai';
+import { getAIDecision, getAIDelay, type AIDifficulty } from '../game/ai';
 import {
   POSITION_TO_TEAM,
   type PlayerPosition,
@@ -26,10 +26,14 @@ export class TrucoRoom extends Room<TrucoGameState> {
   private handEndTimer: NodeJS.Timeout | null = null;
   private trucoResponseTimer: NodeJS.Timeout | null = null;
   private static readonly TRUCO_TIMEOUT_MS = 10_000;
+  private aiDifficulty: AIDifficulty = 'medium';
 
   onCreate(options: any) {
     this.setState(new TrucoGameState());
     initializeGame(this.state);
+    if (options?.difficulty) {
+      this.aiDifficulty = options.difficulty as AIDifficulty;
+    }
 
     // Register message handlers
     this.onMessage('play_card', (client, data: { cardIndex: number }) => {
@@ -290,7 +294,7 @@ export class TrucoRoom extends Room<TrucoGameState> {
     // Don't schedule if already scheduled
     if (this.aiTimers.has(botId)) return;
 
-    const delay = getAIDelay();
+    const delay = getAIDelay(this.aiDifficulty);
     const timer = setTimeout(() => {
       this.aiTimers.delete(botId);
       this.executeAITurn(botId);
@@ -303,7 +307,7 @@ export class TrucoRoom extends Room<TrucoGameState> {
    * Execute an AI turn.
    */
   private executeAITurn(botId: string) {
-    const decision = getAIDecision(this.state, botId);
+    const decision = getAIDecision(this.state, botId, this.aiDifficulty);
     if (!decision) return;
 
     switch (decision.action) {

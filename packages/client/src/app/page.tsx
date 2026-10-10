@@ -7,13 +7,14 @@ import Button from '../components/ui/Button';
 export default function Home() {
   const router = useRouter();
   const [playerName, setPlayerName] = useState('');
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
 
   const handlePlay = (mode: 'online' | 'ai') => {
     const name = playerName.trim() || 'Jogador';
     if (mode === 'online') {
       router.push(`/lobby?name=${encodeURIComponent(name)}`);
     } else {
-      router.push(`/game?mode=ai&name=${encodeURIComponent(name)}`);
+      router.push(`/game?mode=ai&name=${encodeURIComponent(name)}&difficulty=${difficulty}`);
     }
   };
 
@@ -53,6 +54,36 @@ export default function Home() {
           maxLength={20}
           className="w-full px-4 py-3 rounded-lg bg-green-800/50 border-2 border-green-600/50 text-white placeholder-green-400/50 focus:outline-none focus:border-amber-400 transition-colors text-lg"
         />
+      </div>
+
+      {/* Difficulty selector */}
+      <div className="w-full max-w-sm mb-6">
+        <label className="block text-green-200 text-sm font-bold mb-2">
+          Dificuldade (vs Computador)
+        </label>
+        <div className="flex gap-2">
+          {([
+            { value: 'easy' as const, label: 'Facil', color: 'green' },
+            { value: 'medium' as const, label: 'Medio', color: 'amber' },
+            { value: 'hard' as const, label: 'Dificil', color: 'red' },
+          ]).map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setDifficulty(opt.value)}
+              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer border-2 ${
+                difficulty === opt.value
+                  ? opt.color === 'green'
+                    ? 'bg-green-600 border-green-400 text-white'
+                    : opt.color === 'amber'
+                      ? 'bg-amber-600 border-amber-400 text-white'
+                      : 'bg-red-600 border-red-400 text-white'
+                  : 'bg-green-800/50 border-green-600/30 text-green-300/60 hover:text-white'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Play buttons */}

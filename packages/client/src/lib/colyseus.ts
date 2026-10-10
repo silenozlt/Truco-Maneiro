@@ -21,9 +21,9 @@ export function getClient(): Client {
   return client;
 }
 
-export async function createRoom(playerName: string): Promise<Room> {
+export async function createRoom(playerName: string, difficulty?: string): Promise<Room> {
   const c = getClient();
-  const room = await c.create('truco', { name: playerName });
+  const room = await c.create('truco', { name: playerName, difficulty });
   return room;
 }
 

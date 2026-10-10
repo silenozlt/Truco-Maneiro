@@ -183,9 +183,9 @@ export function useColyseus() {
     });
   }, []);
 
-  const create = useCallback(async (playerName: string) => {
+  const create = useCallback(async (playerName: string, difficulty?: string) => {
     try {
-      const r = await createRoom(playerName);
+      const r = await createRoom(playerName, difficulty);
       setupListeners(r);
       return r.roomId;
     } catch (err: any) {

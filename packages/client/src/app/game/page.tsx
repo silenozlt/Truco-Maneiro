@@ -24,6 +24,7 @@ function GameContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode');
   const playerName = searchParams.get('name') || 'Jogador';
+  const difficulty = searchParams.get('difficulty') || 'medium';
 
   const {
     gameState,
@@ -72,7 +73,7 @@ function GameContent() {
     if (mode === 'ai' && !initialized && !connected) {
       setInitialized(true);
       (async () => {
-        const roomId = await create(playerName);
+        const roomId = await create(playerName, difficulty);
         if (roomId) {
           setTimeout(() => {
             addBot();
@@ -151,17 +152,8 @@ function GameContent() {
   const currentTurnPlayer = gameState.players.get(gameState.currentTurn);
   const currentPlayerName = currentTurnPlayer?.name || '';
 
-  // Mao de 10: any team with 10+ points, no truco allowed
-  const isMaoDe10 = myTeamScore >= 10 || theirTeamScore >= 10;
-
   // Can call truco?
   const lastTrucoCallerTeam = gameState.trucoCall?.calledByTeam;
-  const canTruco =
-    gameState.phase === 'playing' &&
-    isMyTurn &&
-    (trucoLevel === -1 || trucoLevel < 12) &&
-    lastTrucoCallerTeam !== myPlayer.team &&
-    !isMaoDe10;
 
   // Truco dialog
   const showTrucoDialog = gameState.phase === 'truco_called' && gameState.trucoCall;
@@ -181,6 +173,15 @@ function GameContent() {
   const myTeamScore = gameState.teams[myPlayer.team]?.score ?? 0;
   const theirTeamScore = gameState.teams[myPlayer.team === 0 ? 1 : 0]?.score ?? 0;
   const scores: [number, number] = [myTeamScore, theirTeamScore];
+
+  // Mao de 10: any team with 10+ points, no truco allowed
+  const isMaoDe10 = myTeamScore >= 10 || theirTeamScore >= 10;
+  const canTruco =
+    gameState.phase === 'playing' &&
+    isMyTurn &&
+    (trucoLevel === -1 || trucoLevel < 12) &&
+    lastTrucoCallerTeam !== myPlayer.team &&
+    !isMaoDe10;
 
   return (
     <div className="flex flex-col min-h-screen">
