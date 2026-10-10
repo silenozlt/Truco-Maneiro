@@ -13,6 +13,7 @@ import Card2D from '../../components/game/Card2D';
 import ChatBox from '../../components/game/ChatBox';
 import Button from '../../components/ui/Button';
 import { useAudio } from '../../hooks/useAudio';
+import { recordMatch } from '../../lib/stats';
 
 // Dynamic import for 3D table (heavy, SSR incompatible)
 const Table3D = dynamic(() => import('../../components/game/Table3D'), {
@@ -48,6 +49,8 @@ function GameContent() {
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [showRunAnimation, setShowRunAnimation] = useState(false);
   const prevRunEventRef = useRef<string>('');
+  const statsRecordedRef = useRef(false);
+  const trucoStatsRef = useRef({ calledByMe: 0, calledByOpponent: 0, accepted: 0, ran: 0 });
 
   // Audio
   const { muted, initialize: initializeAudio, toggleMute: handleToggleMute, playSound: playSoundFn } = useAudio(gameState, sessionId);
@@ -58,6 +61,46 @@ function GameContent() {
     window.addEventListener('click', handler);
     return () => window.removeEventListener('click', handler);
   }, [initializeAudio]);
+
+  // Track truco stats
+  useEffect(() => {
+    if (!gameState) return;
+    const ev = gameState.lastEvent;
+    if (ev === 'truco_called' || ev === 'truco_raised') {
+      const callerTeam = gameState.trucoCall?.calledByTeam;
+      const myPlayer = gameState.players.get(sessionId);
+      if (myPlayer && callerTeam === myPlayer.team) {
+        trucoStatsRef.current.calledByMe++;
+      } else {
+        trucoStatsRef.current.calledByOpponent++;
+      }
+    } else if (ev === 'truco_accepted') {
+      trucoStatsRef.current.accepted++;
+    } else if (ev === 'truco_run') {
+      trucoStatsRef.current.ran++;
+    }
+  }, [gameState?.lastEvent, gameState?.lastEventData]);
+
+  // Record match stats on game over
+  useEffect(() => {
+    if (!gameState || gameState.phase !== 'game_over' || statsRecordedRef.current) return;
+    statsRecordedRef.current = true;
+    const myPlayer = gameState.players.get(sessionId);
+    if (!myPlayer) return;
+    const myScore = gameState.teams[myPlayer.team]?.score ?? 0;
+    const theirScore = gameState.teams[myPlayer.team === 0 ? 1 : 0]?.score ?? 0;
+    recordMatch({
+      date: new Date().toISOString(),
+      won: gameState.winner === myPlayer.team,
+      myScore,
+      theirScore,
+      difficulty,
+      trucosCalledByMe: trucoStatsRef.current.calledByMe,
+      trucosCalledByOpponent: trucoStatsRef.current.calledByOpponent,
+      trucosAccepted: trucoStatsRef.current.accepted,
+      trucosRan: trucoStatsRef.current.ran,
+    });
+  }, [gameState?.phase]);
 
   // Show "CORREU!" animation on truco_run event
   useEffect(() => {

@@ -106,12 +106,20 @@ export default function Home() {
           Jogar vs Computador
         </Button>
 
-        <button
-          onClick={() => router.push('/regras')}
-          className="text-green-300/60 hover:text-amber-400 transition-colors text-sm cursor-pointer mt-1"
-        >
-          Como jogar? Veja as regras
-        </button>
+        <div className="flex gap-4 justify-center mt-2">
+          <button
+            onClick={() => router.push('/regras')}
+            className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer"
+          >
+            Regras
+          </button>
+          <button
+            onClick={() => router.push('/stats')}
+            className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer"
+          >
+            Estatisticas
+          </button>
+        </div>
       </div>
 
       {/* Footer info */}
