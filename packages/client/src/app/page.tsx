@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '../components/ui/Button';
-import { AVATARS, loadAvatar, saveAvatar } from '../lib/avatars';
+import { FREE_AVATARS, PREMIUM_AVATARS, AVATARS, loadAvatar, saveAvatar } from '../lib/avatars';
+import { isAvatarUnlocked, unlockAvatar } from '../lib/premium';
+import { showRewarded } from '../lib/admob';
 
 export default function Home() {
   const router = useRouter();
@@ -11,9 +13,13 @@ export default function Home() {
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [unlockedPremium, setUnlockedPremium] = useState<string[]>([]);
 
   useEffect(() => {
     setAvatar(loadAvatar());
+    setUnlockedPremium(
+      PREMIUM_AVATARS.filter((a) => isAvatarUnlocked(a))
+    );
   }, []);
 
   const handleSelectAvatar = (a: string) => {
@@ -21,6 +27,15 @@ export default function Home() {
     saveAvatar(a);
     setShowAvatarPicker(false);
   };
+
+  const handleUnlockAvatar = useCallback(async (a: string) => {
+    const rewarded = await showRewarded();
+    if (rewarded) {
+      unlockAvatar(a);
+      setUnlockedPremium((prev) => [...prev, a]);
+      handleSelectAvatar(a);
+    }
+  }, []);
 
   const handlePlay = (mode: 'online' | 'ai') => {
     const name = playerName.trim() || 'Jogador';
@@ -70,7 +85,7 @@ export default function Home() {
             </button>
             {showAvatarPicker && (
               <div className="absolute top-14 sm:top-16 left-0 z-50 bg-green-900 border border-green-600/50 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-1 w-52">
-                {AVATARS.map((a) => (
+                {FREE_AVATARS.map((a) => (
                   <button
                     key={a}
                     onClick={() => handleSelectAvatar(a)}
@@ -81,6 +96,29 @@ export default function Home() {
                     {a}
                   </button>
                 ))}
+                {PREMIUM_AVATARS.map((a) => {
+                  const unlocked = unlockedPremium.includes(a);
+                  return (
+                    <button
+                      key={a}
+                      onClick={() => unlocked ? handleSelectAvatar(a) : handleUnlockAvatar(a)}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg cursor-pointer transition-colors relative ${
+                        avatar === a
+                          ? 'bg-amber-600/30 ring-1 ring-amber-400'
+                          : unlocked
+                            ? 'hover:bg-green-700/50'
+                            : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      {a}
+                      {!unlocked && (
+                        <span className="absolute -bottom-0.5 -right-0.5 text-[8px] bg-amber-600 rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                          &#9654;
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

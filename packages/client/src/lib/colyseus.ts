@@ -12,6 +12,15 @@ function getColyseusUrl(): string {
   return 'ws://localhost:3001';
 }
 
+function getServerHttpUrl(): string {
+  if (process.env.NEXT_PUBLIC_COLYSEUS_URL) {
+    const wsUrl = process.env.NEXT_PUBLIC_COLYSEUS_URL;
+    return wsUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
+  }
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  return `http://${hostname}:3001`;
+}
+
 let client: Client | null = null;
 
 export function getClient(): Client {
@@ -45,9 +54,8 @@ export async function getAvailableRooms() {
 }
 
 export async function getActiveRooms(): Promise<Array<{ roomId: string; clients: number }>> {
-  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
   try {
-    const res = await fetch(`http://${hostname}:3001/rooms`);
+    const res = await fetch(`${getServerHttpUrl()}/rooms`);
     return res.json();
   } catch {
     return [];

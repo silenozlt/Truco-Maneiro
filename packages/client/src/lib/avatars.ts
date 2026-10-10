@@ -1,9 +1,14 @@
-export const AVATARS = [
+export const FREE_AVATARS = [
   '🤠', '😎', '🧐', '🤓', '😏', '🥸',
   '👨', '👩', '🧔', '👴', '👵', '🧑',
+];
+
+export const PREMIUM_AVATARS = [
   '🦁', '🐂', '🦅', '🐍', '🦊', '🐺',
   '⭐', '🔥', '💎', '🃏', '👑', '🎯',
 ];
+
+export const AVATARS = [...FREE_AVATARS, ...PREMIUM_AVATARS];
 
 const AVATAR_KEY = 'truco-avatar';
 

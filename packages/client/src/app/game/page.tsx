@@ -10,10 +10,11 @@ import ScoreBoard from '../../components/game/ScoreBoard';
 import TrucoDialog from '../../components/game/TrucoDialog';
 import GameHUD from '../../components/game/GameHUD';
 import Card2D from '../../components/game/Card2D';
-import ChatBox from '../../components/game/ChatBox';
+import ChatBox, { PlayerBubble } from '../../components/game/ChatBox';
 import Button from '../../components/ui/Button';
 import { useAudio } from '../../hooks/useAudio';
 import { recordMatch } from '../../lib/stats';
+import { initializeAdMob, showInterstitial } from '../../lib/admob';
 
 // Dynamic import for 3D table (heavy, SSR incompatible)
 const Table3D = dynamic(() => import('../../components/game/Table3D'), {
@@ -49,6 +50,9 @@ function GameContent() {
   const [initialized, setInitialized] = useState(false);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [showRunAnimation, setShowRunAnimation] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [playerBubbles, setPlayerBubbles] = useState<Record<string, string>>({});
+  const bubbleTimers = useRef<Record<string, NodeJS.Timeout>>({});
   const prevRunEventRef = useRef<string>('');
   const statsRecordedRef = useRef(false);
   const trucoStatsRef = useRef({ calledByMe: 0, calledByOpponent: 0, accepted: 0, ran: 0 });
@@ -56,8 +60,9 @@ function GameContent() {
   // Audio
   const { muted, initialize: initializeAudio, toggleMute: handleToggleMute, playSound: playSoundFn } = useAudio(gameState, sessionId);
 
-  // Initialize audio on first click
+  // Initialize audio on first click + AdMob
   useEffect(() => {
+    initializeAdMob();
     const handler = () => { initializeAudio(); window.removeEventListener('click', handler); };
     window.addEventListener('click', handler);
     return () => window.removeEventListener('click', handler);
@@ -103,6 +108,30 @@ function GameContent() {
     });
   }, [gameState?.phase]);
 
+  // Show chat bubbles near players
+  const prevChatCount = useRef(0);
+  useEffect(() => {
+    if (chatMessages.length > prevChatCount.current) {
+      const newMsgs = chatMessages.slice(prevChatCount.current);
+      for (const msg of newMsgs) {
+        setPlayerBubbles(prev => ({ ...prev, [msg.playerId]: msg.message }));
+        // Clear previous timer for this player
+        if (bubbleTimers.current[msg.playerId]) {
+          clearTimeout(bubbleTimers.current[msg.playerId]);
+        }
+        // Auto-clear after 4 seconds
+        bubbleTimers.current[msg.playerId] = setTimeout(() => {
+          setPlayerBubbles(prev => {
+            const next = { ...prev };
+            delete next[msg.playerId];
+            return next;
+          });
+        }, 4000);
+      }
+    }
+    prevChatCount.current = chatMessages.length;
+  }, [chatMessages.length]);
+
   // Show "CORREU!" animation on truco_run event
   useEffect(() => {
     if (!gameState) return;
@@ -146,14 +175,20 @@ function GameContent() {
     respondTruco(response);
   }, [respondTruco]);
 
-  const handleLeave = useCallback(() => {
+  const handleLeave = useCallback(async () => {
+    if (gameState?.phase === 'game_over') {
+      await showInterstitial();
+    }
     leave();
     router.push('/');
-  }, [leave, router]);
+  }, [leave, router, gameState?.phase]);
 
-  const handleRestart = useCallback(() => {
+  const handleRestart = useCallback(async () => {
+    if (gameState?.phase === 'game_over') {
+      await showInterstitial();
+    }
     restartGame();
-  }, [restartGame]);
+  }, [restartGame, gameState?.phase]);
 
   // Loading state
   if (!connected || !gameState) {
@@ -245,25 +280,35 @@ function GameContent() {
         />
       </div>
 
-      {/* Controls */}
-      <div className="absolute top-12 sm:top-16 left-2 sm:left-4 z-20 flex gap-1.5 sm:gap-2">
+      {/* Floating menu - bottom left */}
+      <div className="fixed bottom-4 left-3 z-30">
+        {showMenu && (
+          <div className="absolute bottom-12 left-0 bg-green-900/95 border border-green-600/50 rounded-xl p-2 flex flex-col gap-1.5 shadow-xl animate-fade-in min-w-[120px]">
+            <button
+              onClick={() => { setViewMode(v => v === '2d' ? '3d' : '2d'); setShowMenu(false); }}
+              className="px-3 py-2 text-left text-xs text-green-200 hover:bg-green-700/50 rounded-lg transition-colors cursor-pointer"
+            >
+              {viewMode === '2d' ? '3D' : '2D'} Vista
+            </button>
+            <button
+              onClick={() => { handleToggleMute(); setShowMenu(false); }}
+              className="px-3 py-2 text-left text-xs text-green-200 hover:bg-green-700/50 rounded-lg transition-colors cursor-pointer"
+            >
+              Som {muted ? 'OFF' : 'ON'}
+            </button>
+            <button
+              onClick={() => { window.open('/regras', '_blank'); setShowMenu(false); }}
+              className="px-3 py-2 text-left text-xs text-green-200 hover:bg-green-700/50 rounded-lg transition-colors cursor-pointer"
+            >
+              Regras
+            </button>
+          </div>
+        )}
         <button
-          onClick={() => setViewMode(v => v === '2d' ? '3d' : '2d')}
-          className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-[10px] sm:text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
+          onClick={() => setShowMenu(v => !v)}
+          className="w-10 h-10 bg-green-800/90 border border-green-600/50 rounded-full text-green-300 hover:text-amber-400 transition-colors cursor-pointer shadow-lg flex items-center justify-center text-lg"
         >
-          {viewMode === '2d' ? '3D' : '2D'}
-        </button>
-        <button
-          onClick={handleToggleMute}
-          className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-[10px] sm:text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
-        >
-          {muted ? 'OFF' : 'ON'}
-        </button>
-        <button
-          onClick={() => window.open('/regras', '_blank')}
-          className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-[10px] sm:text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
-        >
-          ?
+          {showMenu ? '✕' : '⚙'}
         </button>
       </div>
 
@@ -294,21 +339,48 @@ function GameContent() {
           />
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center relative p-2 sm:p-4">
-          <div className="flex flex-col items-center gap-2 sm:gap-4 w-full max-w-2xl">
-            {/* Score board */}
-            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
-              <ScoreBoard
-                scores={scores}
-                teamNames={['Nos', 'Eles']}
-                currentHandPoints={handPoints}
-                trucoLevel={trucoLevel}
-                roundResults={roundResults}
-                currentRound={roundNumber}
-                myTeam={myPlayer.team}
-              />
+        <div className="flex-1 flex flex-col items-center relative p-2 sm:p-4">
+          {/* Score bar - round on left, general on right */}
+          <div className="flex items-stretch justify-between w-full max-w-2xl mb-2 sm:mb-4 gap-2">
+            {/* Left: Round indicators */}
+            <div className="bg-green-800/60 rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 border border-green-600/30 flex items-center gap-2 sm:gap-3">
+              {[0, 1, 2].map((roundIdx) => {
+                const result = roundResults.find(r => r.roundNum === roundIdx);
+                const isCurrent = roundIdx === roundNumber && !result;
+                const won = result && result.winner === myPlayer.team;
+                const lost = result && result.winner !== -1 && result.winner !== myPlayer.team;
+                const tied = result && result.winner === -1;
+                return (
+                  <div key={roundIdx} className={`flex items-center gap-0.5 sm:gap-1 ${isCurrent ? 'text-amber-400' : 'text-green-400/40'}`}>
+                    <span className="text-[10px] sm:text-xs font-medium">{roundIdx + 1}a</span>
+                    {won && <span className="text-blue-300 font-bold text-xs sm:text-sm">✔</span>}
+                    {lost && <span className="text-red-300 font-bold text-xs sm:text-sm">✔</span>}
+                    {tied && <span className="text-gray-400 text-xs sm:text-sm">—</span>}
+                    {isCurrent && <span className="text-amber-300 text-xs sm:text-sm animate-pulse">●</span>}
+                    {!result && !isCurrent && <span className="text-green-600/30 text-xs sm:text-sm">○</span>}
+                  </div>
+                );
+              })}
+              <span className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${trucoLevel >= 4 ? 'text-red-400 bg-red-900/30' : 'text-amber-400 bg-amber-900/30'}`}>
+                {handPoints}pt
+              </span>
             </div>
 
+            {/* Right: General score */}
+            <div className="bg-green-800/60 rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 border border-green-600/30 flex items-center gap-2 sm:gap-4">
+              <div className="text-center">
+                <div className="text-blue-400 text-[9px] sm:text-[10px] font-bold leading-none">NOS</div>
+                <div className="text-lg sm:text-2xl font-black text-white leading-tight">{scores[0]}</div>
+              </div>
+              <div className="text-green-500/40 text-xs sm:text-sm font-bold">x</div>
+              <div className="text-center">
+                <div className="text-red-400 text-[9px] sm:text-[10px] font-bold leading-none">ELES</div>
+                <div className="text-lg sm:text-2xl font-black text-white leading-tight">{scores[1]}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 sm:gap-4 w-full max-w-2xl flex-1 justify-center">
             {/* Partner (North) */}
             <div className="flex flex-col items-center gap-1 sm:gap-2">
               <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(partner?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
@@ -321,6 +393,7 @@ function GameContent() {
                   <Card2D key={i} suit="paus" rank="A" faceDown small />
                 ))}
               </div>
+              <PlayerBubble message={partner?.id ? playerBubbles[partner.id] ?? null : null} />
             </div>
 
             {/* Middle row: West - Play Area - East */}
@@ -337,6 +410,7 @@ function GameContent() {
                     <Card2D key={i} suit="paus" rank="A" faceDown small />
                   ))}
                 </div>
+                <PlayerBubble message={opponents[0]?.id ? playerBubbles[opponents[0].id] ?? null : null} />
               </div>
 
               {/* Play Area */}
@@ -356,6 +430,7 @@ function GameContent() {
                     <Card2D key={i} suit="paus" rank="A" faceDown small />
                   ))}
                 </div>
+                <PlayerBubble message={opponents[1]?.id ? playerBubbles[opponents[1].id] ?? null : null} />
               </div>
             </div>
 
@@ -372,6 +447,8 @@ function GameContent() {
                 isMyTurn={isMyTurn}
                 canPlay={gameState.phase === 'playing'}
               />
+
+              <PlayerBubble message={playerBubbles[sessionId] ?? null} />
 
               {/* Truco button — below cards */}
               {canTruco && (
@@ -415,7 +492,7 @@ function GameContent() {
       )}
 
       {/* Chat */}
-      <ChatBox messages={chatMessages} onSend={sendChat} mySessionId={sessionId} />
+      <ChatBox onSend={sendChat} />
 
       {/* Game Over overlay */}
       {isGameOver && (

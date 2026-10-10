@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
+  output: "export",
+  trailingSlash: true,
+  images: { unoptimized: true },
+  allowedDevOrigins: ["10.0.0.109"],
   turbopack: {
     root: path.resolve(__dirname, "../.."),
     rules: {
