@@ -60,6 +60,18 @@ export class TrucoRoom extends Room<TrucoGameState> {
       this.handleRestartGame();
     });
 
+    this.onMessage('chat', (client, data: { message: string }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || !data.message) return;
+      const text = data.message.slice(0, 100);
+      this.broadcast('chat', {
+        playerId: client.sessionId,
+        playerName: player.name,
+        team: player.team,
+        message: text,
+      });
+    });
+
     console.log(`Room ${this.roomId} created`);
   }
 

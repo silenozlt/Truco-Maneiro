@@ -105,6 +105,13 @@ export default function Home() {
         >
           Jogar vs Computador
         </Button>
+
+        <button
+          onClick={() => router.push('/regras')}
+          className="text-green-300/60 hover:text-amber-400 transition-colors text-sm cursor-pointer mt-1"
+        >
+          Como jogar? Veja as regras
+        </button>
       </div>
 
       {/* Footer info */}

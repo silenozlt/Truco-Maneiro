@@ -10,6 +10,7 @@ import ScoreBoard from '../../components/game/ScoreBoard';
 import TrucoDialog from '../../components/game/TrucoDialog';
 import GameHUD from '../../components/game/GameHUD';
 import Card2D from '../../components/game/Card2D';
+import ChatBox from '../../components/game/ChatBox';
 import Button from '../../components/ui/Button';
 import { useAudio } from '../../hooks/useAudio';
 
@@ -31,6 +32,7 @@ function GameContent() {
     sessionId,
     connected,
     error,
+    chatMessages,
     create,
     addBot,
     startGame,
@@ -38,6 +40,7 @@ function GameContent() {
     callTruco,
     respondTruco,
     restartGame,
+    sendChat,
     leave,
   } = useColyseus();
 
@@ -212,6 +215,12 @@ function GameContent() {
         >
           {muted ? 'OFF' : 'ON'}
         </button>
+        <button
+          onClick={() => window.open('/regras', '_blank')}
+          className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-[10px] sm:text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
+        >
+          ?
+        </button>
       </div>
 
       {/* Main game area */}
@@ -356,6 +365,9 @@ function GameContent() {
           </div>
         </div>
       )}
+
+      {/* Chat */}
+      <ChatBox messages={chatMessages} onSend={sendChat} mySessionId={sessionId} />
 
       {/* Game Over overlay */}
       {isGameOver && (

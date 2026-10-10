@@ -4,6 +4,14 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Room } from 'colyseus.js';
 import { createRoom, joinRoom } from '../lib/colyseus';
 
+export interface ChatMessage {
+  playerId: string;
+  playerName: string;
+  team: number;
+  message: string;
+  timestamp: number;
+}
+
 export interface GameStateData {
   phase: string;
   currentTurn: string;
@@ -62,6 +70,7 @@ export function useColyseus() {
   const [sessionId, setSessionId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const roomRef = useRef<Room | null>(null);
 
   const setupListeners = useCallback((r: Room) => {
@@ -173,6 +182,10 @@ export function useColyseus() {
       setGameState(data);
     });
 
+    r.onMessage('chat', (msg: { playerId: string; playerName: string; team: number; message: string }) => {
+      setChatMessages(prev => [...prev.slice(-49), { ...msg, timestamp: Date.now() }]);
+    });
+
     r.onLeave((code: number) => {
       setConnected(false);
       console.log('Left room:', code);
@@ -229,6 +242,10 @@ export function useColyseus() {
     roomRef.current?.send('restart_game', {});
   }, []);
 
+  const sendChat = useCallback((message: string) => {
+    roomRef.current?.send('chat', { message });
+  }, []);
+
   const leave = useCallback(() => {
     roomRef.current?.leave();
     setRoom(null);
@@ -249,6 +266,7 @@ export function useColyseus() {
     sessionId,
     error,
     connected,
+    chatMessages,
     create,
     join,
     playCard,
@@ -257,6 +275,7 @@ export function useColyseus() {
     startGame,
     addBot,
     restartGame,
+    sendChat,
     leave,
   };
 }
