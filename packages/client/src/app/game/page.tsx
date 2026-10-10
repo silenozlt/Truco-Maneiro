@@ -147,6 +147,7 @@ function GameContent() {
 
   // Determine turn
   const isMyTurn = gameState.currentTurn === sessionId;
+  const isPlayerTurn = (playerId?: string) => playerId === gameState.currentTurn && gameState.phase === 'playing';
   const currentTurnPlayer = gameState.players.get(gameState.currentTurn);
   const currentPlayerName = currentTurnPlayer?.name || '';
 
@@ -249,7 +250,10 @@ function GameContent() {
 
             {/* Partner (North) */}
             <div className="flex flex-col items-center gap-2">
-              <span className="text-green-300/60 text-xs">{partner?.name || 'Parceiro'}</span>
+              <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(partner?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
+                {isPlayerTurn(partner?.id) && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+                {partner?.name || 'Parceiro'}
+              </span>
               <div className="flex gap-1">
                 {Array.from({ length: partner?.hand?.length ?? 0 }).map((_, i) => (
                   <Card2D key={i} suit="paus" rank="A" faceDown small />
@@ -261,7 +265,10 @@ function GameContent() {
             <div className="flex items-center justify-center gap-8 w-full">
               {/* West opponent */}
               <div className="flex flex-col items-center gap-2">
-                <span className="text-green-300/60 text-xs">{opponents[0]?.name || 'Oponente'}</span>
+                <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(opponents[0]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
+                  {isPlayerTurn(opponents[0]?.id) && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+                  {opponents[0]?.name || 'Oponente'}
+                </span>
                 <div className="flex flex-col gap-1">
                   {Array.from({ length: opponents[0]?.hand?.length ?? 0 }).map((_, i) => (
                     <Card2D key={i} suit="paus" rank="A" faceDown small />
@@ -276,7 +283,10 @@ function GameContent() {
 
               {/* East opponent */}
               <div className="flex flex-col items-center gap-2">
-                <span className="text-green-300/60 text-xs">{opponents[1]?.name || 'Oponente'}</span>
+                <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(opponents[1]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
+                  {isPlayerTurn(opponents[1]?.id) && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+                  {opponents[1]?.name || 'Oponente'}
+                </span>
                 <div className="flex flex-col gap-1">
                   {Array.from({ length: opponents[1]?.hand?.length ?? 0 }).map((_, i) => (
                     <Card2D key={i} suit="paus" rank="A" faceDown small />
@@ -287,6 +297,10 @@ function GameContent() {
 
             {/* Player hand (South) */}
             <div className="mt-4 flex flex-col items-center gap-3">
+              <span className={`text-xs flex items-center gap-1.5 ${isMyTurn ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
+                {isMyTurn && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+                {myPlayer.name} (Voce)
+              </span>
               <PlayerHand
                 cards={myPlayer.hand}
                 onPlayCard={handlePlayCard}
