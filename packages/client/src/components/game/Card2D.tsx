@@ -42,7 +42,7 @@ export default function Card2D({
   highlighted = false,
   small = false,
 }: Card2DProps) {
-  const sizeClass = small ? 'w-14 h-20 text-sm' : 'w-20 h-28 text-lg';
+  const sizeClass = small ? 'w-10 h-14 text-[10px] sm:w-14 sm:h-20 sm:text-sm' : 'w-16 h-24 text-base sm:w-20 sm:h-28 sm:text-lg';
   const manilha = isManilha(rank, suit);
 
   if (faceDown) {

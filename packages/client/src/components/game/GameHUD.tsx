@@ -24,10 +24,10 @@ export default function GameHUD({
   return (
     <div className="flex items-center justify-between w-full">
       {/* Left: Turn info */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${isMyTurn ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
-          <span className="text-sm text-green-200">
+      <div className="flex flex-col gap-0.5 sm:gap-1">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isMyTurn ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
+          <span className="text-xs sm:text-sm text-green-200">
             {phase === 'playing'
               ? isMyTurn
                 ? 'Sua vez!'
@@ -44,7 +44,7 @@ export default function GameHUD({
             }
           </span>
         </div>
-        <span className="text-xs text-green-400/50">
+        <span className="text-[10px] sm:text-xs text-green-400/50">
           Rodada {roundNumber + 1}/3
         </span>
       </div>

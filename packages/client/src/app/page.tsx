@@ -19,22 +19,22 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8">
       {/* Logo / Title */}
-      <div className="text-center mb-12">
-        <h1 className="text-6xl font-black text-amber-400 drop-shadow-lg mb-2">
+      <div className="text-center mb-8 sm:mb-12">
+        <h1 className="text-5xl sm:text-6xl font-black text-amber-400 drop-shadow-lg mb-1 sm:mb-2">
           TRUCO
         </h1>
-        <h2 className="text-3xl font-bold text-amber-200/80">
+        <h2 className="text-2xl sm:text-3xl font-bold text-amber-200/80">
           MINEIRO
         </h2>
-        <p className="text-green-300/60 mt-4 text-lg">
+        <p className="text-green-300/60 mt-3 sm:mt-4 text-base sm:text-lg">
           O jogo de cartas mais brabo de Minas
         </p>
       </div>
 
       {/* Card decoration */}
-      <div className="flex gap-2 mb-10 text-5xl">
+      <div className="flex gap-2 mb-6 sm:mb-10 text-4xl sm:text-5xl">
         <span className="text-red-500">&#9829;</span>
         <span className="text-black">&#9824;</span>
         <span className="text-red-500">&#9830;</span>
@@ -42,8 +42,8 @@ export default function Home() {
       </div>
 
       {/* Name input */}
-      <div className="w-full max-w-sm mb-8">
-        <label className="block text-green-200 text-sm font-bold mb-2">
+      <div className="w-full max-w-sm mb-6 sm:mb-8 px-2 sm:px-0">
+        <label className="block text-green-200 text-xs sm:text-sm font-bold mb-1.5 sm:mb-2">
           Seu nome
         </label>
         <input
@@ -52,13 +52,13 @@ export default function Home() {
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
           maxLength={20}
-          className="w-full px-4 py-3 rounded-lg bg-green-800/50 border-2 border-green-600/50 text-white placeholder-green-400/50 focus:outline-none focus:border-amber-400 transition-colors text-lg"
+          className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg bg-green-800/50 border-2 border-green-600/50 text-white placeholder-green-400/50 focus:outline-none focus:border-amber-400 transition-colors text-base sm:text-lg"
         />
       </div>
 
       {/* Difficulty selector */}
-      <div className="w-full max-w-sm mb-6">
-        <label className="block text-green-200 text-sm font-bold mb-2">
+      <div className="w-full max-w-sm mb-5 sm:mb-6 px-2 sm:px-0">
+        <label className="block text-green-200 text-xs sm:text-sm font-bold mb-1.5 sm:mb-2">
           Dificuldade (vs Computador)
         </label>
         <div className="flex gap-2">
@@ -70,7 +70,7 @@ export default function Home() {
             <button
               key={opt.value}
               onClick={() => setDifficulty(opt.value)}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer border-2 ${
+              className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer border-2 ${
                 difficulty === opt.value
                   ? opt.color === 'green'
                     ? 'bg-green-600 border-green-400 text-white'
@@ -87,7 +87,7 @@ export default function Home() {
       </div>
 
       {/* Play buttons */}
-      <div className="flex flex-col gap-4 w-full max-w-sm">
+      <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-sm px-2 sm:px-0">
         <Button
           variant="primary"
           size="lg"
@@ -108,7 +108,7 @@ export default function Home() {
       </div>
 
       {/* Footer info */}
-      <div className="mt-16 text-green-400/40 text-sm text-center">
+      <div className="mt-10 sm:mt-16 text-green-400/40 text-xs sm:text-sm text-center">
         <p>Truco Mineiro - Manilhas Fixas</p>
         <p>Zap (4&#9827;) &gt; Copas (7&#9829;) &gt; Espadilha (A&#9824;) &gt; Ouros (7&#9830;)</p>
       </div>

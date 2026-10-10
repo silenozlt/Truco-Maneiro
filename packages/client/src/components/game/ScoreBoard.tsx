@@ -25,30 +25,30 @@ export default function ScoreBoard({
   myTeam = 0,
 }: ScoreBoardProps) {
   return (
-    <div className="bg-green-800/60 rounded-xl p-4 border border-green-600/30 min-w-[200px]">
-      <h3 className="text-center text-amber-400 font-bold text-sm mb-3 uppercase tracking-wider">
+    <div className="bg-green-800/60 rounded-xl p-2 sm:p-4 border border-green-600/30 min-w-[140px] sm:min-w-[200px]">
+      <h3 className="text-center text-amber-400 font-bold text-[10px] sm:text-sm mb-1.5 sm:mb-3 uppercase tracking-wider">
         Placar
       </h3>
 
-      <div className="flex justify-between items-center gap-6">
+      <div className="flex justify-between items-center gap-3 sm:gap-6">
         {/* Team 0 */}
         <div className="text-center flex-1">
-          <div className="text-blue-400 text-xs font-bold mb-1">{teamNames[0]}</div>
-          <div className="text-3xl font-black text-white">{scores[0]}</div>
+          <div className="text-blue-400 text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1">{teamNames[0]}</div>
+          <div className="text-2xl sm:text-3xl font-black text-white">{scores[0]}</div>
         </div>
 
-        <div className="text-green-500/40 text-xl font-bold">x</div>
+        <div className="text-green-500/40 text-base sm:text-xl font-bold">x</div>
 
         {/* Team 1 */}
         <div className="text-center flex-1">
-          <div className="text-red-400 text-xs font-bold mb-1">{teamNames[1]}</div>
-          <div className="text-3xl font-black text-white">{scores[1]}</div>
+          <div className="text-red-400 text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1">{teamNames[1]}</div>
+          <div className="text-2xl sm:text-3xl font-black text-white">{scores[1]}</div>
         </div>
       </div>
 
       {/* Round indicators - table format */}
-      <div className="mt-3 border-t border-green-600/30 pt-2">
-        <table className="w-full text-center text-xs">
+      <div className="mt-2 sm:mt-3 border-t border-green-600/30 pt-1.5 sm:pt-2">
+        <table className="w-full text-center text-[10px] sm:text-xs">
           <thead>
             <tr>
               <th className="text-green-400/40 font-normal pb-1"></th>
@@ -91,9 +91,9 @@ export default function ScoreBoard({
       </div>
 
       {/* Current hand value */}
-      <div className="mt-3 text-center">
-        <span className={`text-xs font-bold px-3 py-1 rounded-full ${trucoLevel >= 4 ? 'text-red-400 bg-red-900/30' : 'text-amber-400 bg-amber-900/30'}`}>
-          Valendo {currentHandPoints} pontos
+      <div className="mt-2 sm:mt-3 text-center">
+        <span className={`text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full ${trucoLevel >= 4 ? 'text-red-400 bg-red-900/30' : 'text-amber-400 bg-amber-900/30'}`}>
+          Valendo {currentHandPoints} pts
         </span>
       </div>
     </div>

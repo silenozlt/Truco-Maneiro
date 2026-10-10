@@ -55,21 +55,21 @@ export default function TrucoDialog({
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-gradient-to-b from-green-800 to-green-900 rounded-2xl p-8 border-2 border-amber-400/50 shadow-2xl max-w-sm w-full mx-4 animate-scale-in">
+      <div className="bg-gradient-to-b from-green-800 to-green-900 rounded-2xl p-5 sm:p-8 border-2 border-amber-400/50 shadow-2xl max-w-sm w-full mx-4 animate-scale-in">
         {/* Title */}
-        <div className="text-center mb-4">
-          <div className="text-5xl font-black text-amber-400 mb-2 animate-bounce">
+        <div className="text-center mb-3 sm:mb-4">
+          <div className="text-3xl sm:text-5xl font-black text-amber-400 mb-1 sm:mb-2 animate-bounce">
             {LEVEL_NAMES[level] || `${level}!`}
           </div>
-          <p className="text-green-200/80 text-sm">
+          <p className="text-green-200/80 text-xs sm:text-sm">
             {calledByName} pediu {LEVEL_NAMES[level]?.toLowerCase() || level}!
           </p>
         </div>
 
         {/* Countdown timer */}
-        <div className="mb-5">
-          <div className="flex items-center justify-center mb-2">
-            <span className={`text-2xl font-bold tabular-nums ${isUrgent ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
+        <div className="mb-4 sm:mb-5">
+          <div className="flex items-center justify-center mb-1.5 sm:mb-2">
+            <span className={`text-xl sm:text-2xl font-bold tabular-nums ${isUrgent ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
               {secondsLeft}s
             </span>
           </div>

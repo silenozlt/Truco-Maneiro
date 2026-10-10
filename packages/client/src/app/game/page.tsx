@@ -186,7 +186,7 @@ function GameContent() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Top bar */}
-      <div className="p-3 bg-green-900/80 border-b border-green-700/50">
+      <div className="p-2 sm:p-3 bg-green-900/80 border-b border-green-700/50">
         <GameHUD
           phase={gameState.phase}
           isMyTurn={isMyTurn}
@@ -199,18 +199,18 @@ function GameContent() {
       </div>
 
       {/* Controls */}
-      <div className="absolute top-16 left-4 z-20 flex gap-2">
+      <div className="absolute top-12 sm:top-16 left-2 sm:left-4 z-20 flex gap-1.5 sm:gap-2">
         <button
           onClick={() => setViewMode(v => v === '2d' ? '3d' : '2d')}
-          className="px-3 py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
+          className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-[10px] sm:text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
         >
-          {viewMode === '2d' ? 'Modo 3D' : 'Modo 2D'}
+          {viewMode === '2d' ? '3D' : '2D'}
         </button>
         <button
           onClick={handleToggleMute}
-          className="px-3 py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
+          className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-800/80 border border-green-600/50 rounded-lg text-[10px] sm:text-xs text-green-300 hover:text-amber-400 transition-colors cursor-pointer"
         >
-          {muted ? 'Som OFF' : 'Som ON'}
+          {muted ? 'OFF' : 'ON'}
         </button>
       </div>
 
@@ -241,20 +241,23 @@ function GameContent() {
           />
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center relative p-4">
-          <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+        <div className="flex-1 flex items-center justify-center relative p-2 sm:p-4">
+          <div className="flex flex-col items-center gap-2 sm:gap-4 w-full max-w-2xl">
             {/* Score board */}
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
               <ScoreBoard
                 scores={scores}
                 teamNames={['Nos', 'Eles']}
                 currentHandPoints={handPoints}
                 trucoLevel={trucoLevel}
+                roundResults={roundResults}
+                currentRound={roundNumber}
+                myTeam={myPlayer.team}
               />
             </div>
 
             {/* Partner (North) */}
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-1 sm:gap-2">
               <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(partner?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
                 {isPlayerTurn(partner?.id) && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
                 {partner?.name || 'Parceiro'}
@@ -267,11 +270,11 @@ function GameContent() {
             </div>
 
             {/* Middle row: West - Play Area - East */}
-            <div className="flex items-center justify-center gap-8 w-full">
+            <div className="flex items-center justify-center gap-3 sm:gap-8 w-full">
               {/* West opponent */}
-              <div className="flex flex-col items-center gap-2">
-                <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(opponents[0]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
-                  {isPlayerTurn(opponents[0]?.id) && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 min-w-[50px]">
+                <span className={`text-[10px] sm:text-xs flex items-center gap-1 ${isPlayerTurn(opponents[0]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
+                  {isPlayerTurn(opponents[0]?.id) && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />}
                   {opponents[0]?.name || 'Oponente'}
                 </span>
                 <div className="flex flex-col gap-1">
@@ -282,14 +285,14 @@ function GameContent() {
               </div>
 
               {/* Play Area */}
-              <div className="bg-green-700/30 rounded-full w-72 h-72 flex items-center justify-center border-2 border-green-600/20">
+              <div className="bg-green-700/30 rounded-full w-44 h-44 sm:w-72 sm:h-72 flex items-center justify-center border-2 border-green-600/20 shrink-0">
                 <PlayArea cardsPlayed={cardsPlayed} playerNames={playerNames} />
               </div>
 
               {/* East opponent */}
-              <div className="flex flex-col items-center gap-2">
-                <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(opponents[1]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
-                  {isPlayerTurn(opponents[1]?.id) && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 min-w-[50px]">
+                <span className={`text-[10px] sm:text-xs flex items-center gap-1 ${isPlayerTurn(opponents[1]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
+                  {isPlayerTurn(opponents[1]?.id) && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />}
                   {opponents[1]?.name || 'Oponente'}
                 </span>
                 <div className="flex flex-col gap-1">
@@ -301,7 +304,7 @@ function GameContent() {
             </div>
 
             {/* Player hand (South) */}
-            <div className="mt-4 flex flex-col items-center gap-3">
+            <div className="mt-2 sm:mt-4 flex flex-col items-center gap-2 sm:gap-3">
               <span className={`text-xs flex items-center gap-1.5 ${isMyTurn ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
                 {isMyTurn && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
                 {myPlayer.name} (Voce)
@@ -317,7 +320,7 @@ function GameContent() {
               {canTruco && (
                 <button
                   onClick={handleCallTruco}
-                  className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-black text-xl rounded-xl border-2 border-red-800 shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer tracking-wider"
+                  className="px-5 py-2 sm:px-8 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-black text-base sm:text-xl rounded-xl border-2 border-red-800 shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer tracking-wider"
                 >
                   {trucoLevel === -1 ? 'TRUCO!' : trucoLevel === 4 ? 'SEIS!' : trucoLevel === 6 ? 'DEZ!' : trucoLevel === 10 ? 'DOZE!' : 'TRUCO!'}
                 </button>
@@ -347,7 +350,7 @@ function GameContent() {
       {showRunAnimation && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
           <div className="animate-zoom-fade">
-            <div className="text-7xl font-black text-red-500 animate-shake" style={{ textShadow: '0 0 20px rgba(239,68,68,0.7), 0 4px 8px rgba(0,0,0,0.5)' }}>
+            <div className="text-5xl sm:text-7xl font-black text-red-500 animate-shake" style={{ textShadow: '0 0 20px rgba(239,68,68,0.7), 0 4px 8px rgba(0,0,0,0.5)' }}>
               CORREU!
             </div>
           </div>
@@ -357,8 +360,8 @@ function GameContent() {
       {/* Game Over overlay */}
       {isGameOver && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-b from-green-800 to-green-900 rounded-2xl p-10 border-2 border-amber-400/50 shadow-2xl text-center max-w-sm w-full mx-4">
-            <div className={`text-5xl font-black mb-4 ${myTeamWon ? 'text-amber-400' : 'text-red-400'}`}>
+          <div className="bg-gradient-to-b from-green-800 to-green-900 rounded-2xl p-6 sm:p-10 border-2 border-amber-400/50 shadow-2xl text-center max-w-sm w-full mx-4">
+            <div className={`text-4xl sm:text-5xl font-black mb-3 sm:mb-4 ${myTeamWon ? 'text-amber-400' : 'text-red-400'}`}>
               {myTeamWon ? 'VITORIA!' : 'DERROTA'}
             </div>
             <p className="text-green-200 mb-2">

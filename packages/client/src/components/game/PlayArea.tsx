@@ -23,7 +23,7 @@ const POSITIONS: Record<number, { className: string }> = {
 
 export default function PlayArea({ cardsPlayed, playerNames }: PlayAreaProps) {
   return (
-    <div className="relative w-64 h-64">
+    <div className="relative w-full h-full">
       {cardsPlayed.map((pc) => {
         const pos = POSITIONS[pc.position];
         return (
