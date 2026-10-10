@@ -1,20 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '../components/ui/Button';
+import { AVATARS, loadAvatar, saveAvatar } from '../lib/avatars';
 
 export default function Home() {
   const router = useRouter();
   const [playerName, setPlayerName] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [avatar, setAvatar] = useState(AVATARS[0]);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
+  useEffect(() => {
+    setAvatar(loadAvatar());
+  }, []);
+
+  const handleSelectAvatar = (a: string) => {
+    setAvatar(a);
+    saveAvatar(a);
+    setShowAvatarPicker(false);
+  };
 
   const handlePlay = (mode: 'online' | 'ai') => {
     const name = playerName.trim() || 'Jogador';
     if (mode === 'online') {
-      router.push(`/lobby?name=${encodeURIComponent(name)}`);
+      router.push(`/lobby?name=${encodeURIComponent(name)}&avatar=${encodeURIComponent(avatar)}`);
     } else {
-      router.push(`/game?mode=ai&name=${encodeURIComponent(name)}&difficulty=${difficulty}`);
+      router.push(`/game?mode=ai&name=${encodeURIComponent(name)}&difficulty=${difficulty}&avatar=${encodeURIComponent(avatar)}`);
     }
   };
 
@@ -41,19 +54,45 @@ export default function Home() {
         <span className="text-black">&#9827;</span>
       </div>
 
-      {/* Name input */}
+      {/* Avatar + Name */}
       <div className="w-full max-w-sm mb-6 sm:mb-8 px-2 sm:px-0">
         <label className="block text-green-200 text-xs sm:text-sm font-bold mb-1.5 sm:mb-2">
-          Seu nome
+          Seu perfil
         </label>
-        <input
-          type="text"
-          placeholder="Digite seu nome..."
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-          maxLength={20}
-          className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg bg-green-800/50 border-2 border-green-600/50 text-white placeholder-green-400/50 focus:outline-none focus:border-amber-400 transition-colors text-base sm:text-lg"
-        />
+        <div className="flex gap-3 items-start">
+          {/* Avatar picker */}
+          <div className="relative">
+            <button
+              onClick={() => setShowAvatarPicker(!showAvatarPicker)}
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-green-800/50 border-2 border-green-600/50 text-2xl sm:text-3xl flex items-center justify-center cursor-pointer hover:border-amber-400 transition-colors"
+            >
+              {avatar}
+            </button>
+            {showAvatarPicker && (
+              <div className="absolute top-14 sm:top-16 left-0 z-50 bg-green-900 border border-green-600/50 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-1 w-52">
+                {AVATARS.map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => handleSelectAvatar(a)}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg cursor-pointer hover:bg-green-700/50 transition-colors ${
+                      avatar === a ? 'bg-amber-600/30 ring-1 ring-amber-400' : ''
+                    }`}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <input
+            type="text"
+            placeholder="Digite seu nome..."
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            maxLength={20}
+            className="flex-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg bg-green-800/50 border-2 border-green-600/50 text-white placeholder-green-400/50 focus:outline-none focus:border-amber-400 transition-colors text-base sm:text-lg"
+          />
+        </div>
       </div>
 
       {/* Difficulty selector */}

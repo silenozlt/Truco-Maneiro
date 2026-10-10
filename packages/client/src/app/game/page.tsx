@@ -27,6 +27,7 @@ function GameContent() {
   const mode = searchParams.get('mode');
   const playerName = searchParams.get('name') || 'Jogador';
   const difficulty = searchParams.get('difficulty') || 'medium';
+  const myAvatar = searchParams.get('avatar') || '🤠';
 
   const {
     gameState,
@@ -312,6 +313,7 @@ function GameContent() {
             <div className="flex flex-col items-center gap-1 sm:gap-2">
               <span className={`text-xs flex items-center gap-1.5 ${isPlayerTurn(partner?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
                 {isPlayerTurn(partner?.id) && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+                <span className="text-sm">{partner?.isBot ? '🤖' : '🧑'}</span>
                 {partner?.name || 'Parceiro'}
               </span>
               <div className="flex gap-1">
@@ -327,6 +329,7 @@ function GameContent() {
               <div className="flex flex-col items-center gap-1 sm:gap-2 min-w-[50px]">
                 <span className={`text-[10px] sm:text-xs flex items-center gap-1 ${isPlayerTurn(opponents[0]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
                   {isPlayerTurn(opponents[0]?.id) && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />}
+                  <span className="text-sm">{opponents[0]?.isBot ? '🤖' : '🧑'}</span>
                   {opponents[0]?.name || 'Oponente'}
                 </span>
                 <div className="flex flex-col gap-1">
@@ -345,6 +348,7 @@ function GameContent() {
               <div className="flex flex-col items-center gap-1 sm:gap-2 min-w-[50px]">
                 <span className={`text-[10px] sm:text-xs flex items-center gap-1 ${isPlayerTurn(opponents[1]?.id) ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
                   {isPlayerTurn(opponents[1]?.id) && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />}
+                  <span className="text-sm">{opponents[1]?.isBot ? '🤖' : '🧑'}</span>
                   {opponents[1]?.name || 'Oponente'}
                 </span>
                 <div className="flex flex-col gap-1">
@@ -359,6 +363,7 @@ function GameContent() {
             <div className="mt-2 sm:mt-4 flex flex-col items-center gap-2 sm:gap-3">
               <span className={`text-xs flex items-center gap-1.5 ${isMyTurn ? 'text-amber-400 font-bold' : 'text-green-300/60'}`}>
                 {isMyTurn && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+                <span className="text-sm">{myAvatar}</span>
                 {myPlayer.name} (Voce)
               </span>
               <PlayerHand
