@@ -47,26 +47,6 @@ export default function GameHUD({
         <span className="text-xs text-green-400/50">
           Rodada {roundNumber + 1}/3
         </span>
-
-        {/* Round results */}
-        {roundResults.length > 0 && (
-          <div className="flex gap-2 mt-1">
-            {roundResults.map((r, i) => (
-              <span
-                key={i}
-                className={`text-xs px-2 py-0.5 rounded ${
-                  r.winner === myTeam
-                    ? 'bg-blue-600/30 text-blue-300'
-                    : r.winner === -1
-                      ? 'bg-gray-600/30 text-gray-300'
-                      : 'bg-red-600/30 text-red-300'
-                }`}
-              >
-                R{r.roundNum + 1}: {r.winner === myTeam ? 'Nos' : r.winner === -1 ? 'Empate' : 'Eles'}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Right: Leave */}

@@ -218,6 +218,9 @@ function GameContent() {
               teamNames={['Nos', 'Eles']}
               currentHandPoints={handPoints}
               trucoLevel={trucoLevel}
+              roundResults={roundResults}
+              currentRound={roundNumber}
+              myTeam={myPlayer.team}
             />
           </div>
 

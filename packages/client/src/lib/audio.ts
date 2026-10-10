@@ -101,6 +101,21 @@ function playNoise(duration: number, volume: number = 0.2) {
 }
 
 /**
+ * Speak a word using the browser's SpeechSynthesis API.
+ */
+function speak(text: string, rate: number = 1.3, pitch: number = 1.2) {
+  if (muted) return;
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'pt-BR';
+  utterance.rate = rate;
+  utterance.pitch = pitch;
+  utterance.volume = globalVolume;
+  window.speechSynthesis.speak(utterance);
+}
+
+/**
  * Play a generated placeholder sound by name.
  */
 const SOUND_GENERATORS: Record<SoundName, () => void> = {
@@ -117,21 +132,25 @@ const SOUND_GENERATORS: Record<SoundName, () => void> = {
     }
   },
   truco_call: () => {
+    speak('TRUCO!', 1.4, 1.3);
     playTone(440, 0.15, 'square', 0.4);
     setTimeout(() => playTone(554, 0.15, 'square', 0.4), 150);
     setTimeout(() => playTone(659, 0.3, 'square', 0.5), 300);
   },
   seis_call: () => {
+    speak('SEIS!', 1.4, 1.4);
     playTone(523, 0.12, 'square', 0.4);
     setTimeout(() => playTone(659, 0.12, 'square', 0.4), 120);
     setTimeout(() => playTone(784, 0.25, 'square', 0.5), 240);
   },
   nove_call: () => {
+    speak('DEZ!', 1.4, 1.5);
     playTone(587, 0.1, 'sawtooth', 0.4);
     setTimeout(() => playTone(740, 0.1, 'sawtooth', 0.4), 100);
     setTimeout(() => playTone(880, 0.2, 'sawtooth', 0.5), 200);
   },
   doze_call: () => {
+    speak('DOZE!', 1.3, 1.6);
     playTone(659, 0.1, 'sawtooth', 0.5);
     setTimeout(() => playTone(831, 0.1, 'sawtooth', 0.5), 100);
     setTimeout(() => playTone(988, 0.1, 'sawtooth', 0.5), 200);
