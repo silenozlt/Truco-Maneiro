@@ -46,41 +46,48 @@ export default function ScoreBoard({
         </div>
       </div>
 
-      {/* Round indicators */}
-      <div className="mt-3 flex justify-center gap-2">
-        {[0, 1, 2].map((roundIdx) => {
-          const result = roundResults.find(r => r.roundNum === roundIdx);
-          const isCurrent = roundIdx === currentRound && !result;
-          const won = result && result.winner === myTeam;
-          const lost = result && result.winner !== -1 && result.winner !== myTeam;
-          const tied = result && result.winner === -1;
+      {/* Round indicators - table format */}
+      <div className="mt-3 border-t border-green-600/30 pt-2">
+        <table className="w-full text-center text-xs">
+          <thead>
+            <tr>
+              <th className="text-green-400/40 font-normal pb-1"></th>
+              <th className="text-blue-400 font-bold pb-1">Nos</th>
+              <th className="text-red-400 font-bold pb-1">Eles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[0, 1, 2].map((roundIdx) => {
+              const result = roundResults.find(r => r.roundNum === roundIdx);
+              const isCurrent = roundIdx === currentRound && !result;
+              const won = result && result.winner === myTeam;
+              const lost = result && result.winner !== -1 && result.winner !== myTeam;
+              const tied = result && result.winner === -1;
 
-          return (
-            <div
-              key={roundIdx}
-              className={`flex flex-col items-center px-2.5 py-1 rounded-lg border transition-all ${
-                isCurrent
-                  ? 'border-amber-400/60 bg-amber-400/10'
-                  : won
-                    ? 'border-blue-400/40 bg-blue-500/15'
-                    : lost
-                      ? 'border-red-400/40 bg-red-500/15'
-                      : tied
-                        ? 'border-gray-400/30 bg-gray-500/10'
-                        : 'border-green-700/30 bg-green-900/20'
-              }`}
-            >
-              <span className={`text-[10px] font-medium ${isCurrent ? 'text-amber-400' : 'text-green-400/40'}`}>
-                {roundIdx + 1}a
-              </span>
-              <span className={`text-xs font-bold ${
-                won ? 'text-blue-300' : lost ? 'text-red-300' : tied ? 'text-gray-400' : isCurrent ? 'text-amber-300/60' : 'text-green-700/40'
-              }`}>
-                {won ? 'Nos' : lost ? 'Eles' : tied ? 'Emp' : '-'}
-              </span>
-            </div>
-          );
-        })}
+              return (
+                <tr key={roundIdx} className={isCurrent ? 'text-amber-400' : ''}>
+                  <td className={`py-0.5 font-medium ${isCurrent ? 'text-amber-400' : 'text-green-400/40'}`}>
+                    {roundIdx + 1}a
+                  </td>
+                  <td className="py-0.5">
+                    {won ? <span className="text-blue-300 font-bold">✔</span>
+                      : tied ? <span className="text-gray-400">—</span>
+                      : result ? ''
+                      : isCurrent ? <span className="text-amber-300/40">·</span>
+                      : ''}
+                  </td>
+                  <td className="py-0.5">
+                    {lost ? <span className="text-red-300 font-bold">✔</span>
+                      : tied ? <span className="text-gray-400">—</span>
+                      : result ? ''
+                      : isCurrent ? <span className="text-amber-300/40">·</span>
+                      : ''}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* Current hand value */}
