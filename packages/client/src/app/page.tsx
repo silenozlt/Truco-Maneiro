@@ -14,7 +14,6 @@ export default function Home() {
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [unlockedPremium, setUnlockedPremium] = useState<string[]>([]);
-  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     setAvatar(loadAvatar());
@@ -184,22 +183,26 @@ export default function Home() {
           Jogar vs Computador
         </Button>
 
-        <div className="flex flex-col items-center gap-2 mt-2">
-          <button
-            onClick={() => setShowMenu(v => !v)}
-            className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer flex items-center gap-1"
-          >
-            Menu {showMenu ? '\u25B2' : '\u25BC'}
-          </button>
-          {showMenu && (
-            <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
-              <button onClick={() => router.push('/regras')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Regras</button>
-              <button onClick={() => router.push('/stats')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Estatisticas</button>
-              <button onClick={() => router.push(`/torneio?name=${encodeURIComponent(playerName.trim() || 'Jogador')}&avatar=${encodeURIComponent(avatar)}`)} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Torneio</button>
-              <button onClick={() => router.push('/assistir')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Assistir</button>
-              <button onClick={() => router.push('/replay')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Replays</button>
-            </div>
-          )}
+        {/* Game options carousel */}
+        <div className="w-full max-w-sm mt-3 px-2 sm:px-0">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+            {([
+              { label: 'Torneio', icon: '\uD83C\uDFC6', route: `/torneio?name=${encodeURIComponent(playerName.trim() || 'Jogador')}&avatar=${encodeURIComponent(avatar)}` },
+              { label: 'Assistir', icon: '\uD83D\uDC41', route: '/assistir' },
+              { label: 'Replays', icon: '\uD83C\uDFAC', route: '/replay' },
+              { label: 'Regras', icon: '\uD83D\uDCD6', route: '/regras' },
+              { label: 'Stats', icon: '\uD83D\uDCCA', route: '/stats' },
+            ]).map((item) => (
+              <button
+                key={item.label}
+                onClick={() => router.push(item.route)}
+                className="flex-shrink-0 snap-start w-20 sm:w-24 py-3 rounded-xl bg-green-800/40 border border-green-600/30 hover:border-amber-400/60 hover:bg-green-700/40 transition-all cursor-pointer flex flex-col items-center gap-1.5"
+              >
+                <span className="text-2xl sm:text-3xl">{item.icon}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-green-200/80">{item.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
