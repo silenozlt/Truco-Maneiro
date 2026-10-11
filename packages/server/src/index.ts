@@ -63,7 +63,11 @@ app.post('/auth/match', (req, res) => {
   res.json({ ok: true });
 });
 
-// Health check
+// Root & Health check
+app.get('/', (_req, res) => {
+  res.json({ name: 'Truco Maneiro API', status: 'ok' });
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', rooms: gameServer.matchMaker?.stats?.local || 0 });
 });

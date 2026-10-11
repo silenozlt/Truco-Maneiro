@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: truco-maneiro-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npx tsx packages/server/src/index.ts
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
