@@ -36,9 +36,9 @@ export async function createRoom(playerName: string, difficulty?: string): Promi
   return room;
 }
 
-export async function joinRoom(roomId: string, playerName: string): Promise<Room> {
+export async function joinRoom(roomId: string, playerName: string, options?: { position?: number }): Promise<Room> {
   const c = getClient();
-  const room = await c.joinById(roomId, { name: playerName });
+  const room = await c.joinById(roomId, { name: playerName, ...options });
   return room;
 }
 
@@ -60,4 +60,28 @@ export async function getActiveRooms(): Promise<Array<{ roomId: string; clients:
   } catch {
     return [];
   }
+}
+
+export async function joinTournament(playerName: string, mode: 'auto' | 'partner', avatar?: string, partnerCode?: string): Promise<Room> {
+  const c = getClient();
+  // Try to join an existing waiting tournament room
+  try {
+    const rooms = await c.getAvailableRooms('tournament');
+    const waitingRoom = rooms.find(r => (r.metadata as any)?.phase === 'waiting' && r.clients < 8);
+    if (waitingRoom) {
+      return await c.joinById(waitingRoom.roomId, { name: playerName, mode, avatar, partnerCode });
+    }
+  } catch {}
+  // No available room, create a new one
+  return await c.create('tournament', { name: playerName, mode, avatar, partnerCode });
+}
+
+export async function joinMatchRoom(roomId: string, playerName: string, position: number): Promise<Room> {
+  const c = getClient();
+  return await c.joinById(roomId, { name: playerName, position });
+}
+
+export async function rejoinTournamentRoom(roomId: string, playerName: string, previousId: string, avatar?: string): Promise<Room> {
+  const c = getClient();
+  return await c.joinById(roomId, { name: playerName, avatar, rejoin: true, previousId });
 }

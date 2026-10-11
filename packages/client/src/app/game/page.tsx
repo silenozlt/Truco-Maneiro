@@ -29,6 +29,10 @@ function GameContent() {
   const playerName = searchParams.get('name') || 'Jogador';
   const difficulty = searchParams.get('difficulty') || 'medium';
   const myAvatar = searchParams.get('avatar') || '🤠';
+  const tournamentRoomId = searchParams.get('roomId');
+  const isTournament = searchParams.get('tournament') === 'true';
+  const tournamentMatchId = searchParams.get('matchId');
+  const tournamentPosition = searchParams.get('position');
 
   const {
     gameState,
@@ -37,6 +41,7 @@ function GameContent() {
     error,
     chatMessages,
     create,
+    join,
     addBot,
     startGame,
     playCard,
@@ -162,6 +167,15 @@ function GameContent() {
     }
   }, [mode, initialized, connected, create, playerName, addBot, startGame]);
 
+  // Direct room join for tournament mode
+  useEffect(() => {
+    if (tournamentRoomId && !initialized && !connected) {
+      setInitialized(true);
+      const pos = tournamentPosition ? parseInt(tournamentPosition) : undefined;
+      join(tournamentRoomId, playerName, pos !== undefined ? { position: pos } : undefined);
+    }
+  }, [tournamentRoomId, initialized, connected, join, playerName, tournamentPosition]);
+
   const handlePlayCard = useCallback((index: number) => {
     playSoundFn('card_play');
     playCard(index);
@@ -174,6 +188,20 @@ function GameContent() {
   const handleRespondTruco = useCallback((response: 'accept' | 'run' | 'raise') => {
     respondTruco(response);
   }, [respondTruco]);
+
+  // Tournament mode: auto-redirect back to /torneio on game over
+  useEffect(() => {
+    if (isTournament && gameState?.phase === 'game_over' && tournamentMatchId) {
+      const timer = setTimeout(() => {
+        const winnerTeam = gameState.winner;
+        const s0 = gameState.teams[0]?.score ?? 0;
+        const s1 = gameState.teams[1]?.score ?? 0;
+        leave();
+        router.push(`/torneio?name=${encodeURIComponent(playerName)}&avatar=${encodeURIComponent(myAvatar)}&matchResult=${winnerTeam}&matchId=${tournamentMatchId}&score0=${s0}&score1=${s1}`);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isTournament, gameState?.phase, tournamentMatchId]);
 
   const handleLeave = useCallback(async () => {
     if (gameState?.phase === 'game_over') {
@@ -505,16 +533,20 @@ function GameContent() {
               Placar final: {scores[0]} x {scores[1]}
             </p>
             <p className="text-green-300/60 text-sm mb-8">
-              {myTeamWon ? 'Parabens! Voce e seu parceiro venceram!' : 'Nao foi dessa vez...'}
+              {isTournament
+                ? 'Voltando ao torneio...'
+                : myTeamWon ? 'Parabens! Voce e seu parceiro venceram!' : 'Nao foi dessa vez...'}
             </p>
-            <div className="flex flex-col gap-3">
-              <Button variant="primary" size="lg" className="w-full" onClick={handleRestart}>
-                Jogar Novamente
-              </Button>
-              <Button variant="secondary" size="md" className="w-full" onClick={handleLeave}>
-                Voltar ao Menu
-              </Button>
-            </div>
+            {!isTournament && (
+              <div className="flex flex-col gap-3">
+                <Button variant="primary" size="lg" className="w-full" onClick={handleRestart}>
+                  Jogar Novamente
+                </Button>
+                <Button variant="secondary" size="md" className="w-full" onClick={handleLeave}>
+                  Voltar ao Menu
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

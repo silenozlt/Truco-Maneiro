@@ -14,6 +14,7 @@ export default function Home() {
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [unlockedPremium, setUnlockedPremium] = useState<string[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     setAvatar(loadAvatar());
@@ -183,12 +184,22 @@ export default function Home() {
           Jogar vs Computador
         </Button>
 
-        <div className="flex flex-wrap gap-3 sm:gap-4 justify-center mt-2">
-          <button onClick={() => router.push('/regras')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Regras</button>
-          <button onClick={() => router.push('/stats')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Estatisticas</button>
-          <button onClick={() => router.push('/torneio')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Torneio</button>
-          <button onClick={() => router.push('/assistir')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Assistir</button>
-          <button onClick={() => router.push('/replay')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Replays</button>
+        <div className="flex flex-col items-center gap-2 mt-2">
+          <button
+            onClick={() => setShowMenu(v => !v)}
+            className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer flex items-center gap-1"
+          >
+            Menu {showMenu ? '\u25B2' : '\u25BC'}
+          </button>
+          {showMenu && (
+            <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
+              <button onClick={() => router.push('/regras')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Regras</button>
+              <button onClick={() => router.push('/stats')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Estatisticas</button>
+              <button onClick={() => router.push(`/torneio?name=${encodeURIComponent(playerName.trim() || 'Jogador')}&avatar=${encodeURIComponent(avatar)}`)} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Torneio</button>
+              <button onClick={() => router.push('/assistir')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Assistir</button>
+              <button onClick={() => router.push('/replay')} className="text-green-300/60 hover:text-amber-400 transition-colors text-xs sm:text-sm cursor-pointer">Replays</button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -214,9 +214,9 @@ export function useColyseus() {
     }
   }, [setupListeners]);
 
-  const join = useCallback(async (roomId: string, playerName: string) => {
+  const join = useCallback(async (roomId: string, playerName: string, options?: { position?: number }) => {
     try {
-      const r = await joinRoom(roomId, playerName);
+      const r = await joinRoom(roomId, playerName, options);
       setupListeners(r);
       return true;
     } catch (err: any) {

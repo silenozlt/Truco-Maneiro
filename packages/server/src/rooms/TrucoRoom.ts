@@ -37,12 +37,16 @@ export class TrucoRoom extends Room<TrucoGameState> {
   private spectators: Set<string> = new Set();
   private replayLog: ReplayAction[] = [];
   private gameStartTime: number = 0;
+  private autoStartEnabled: boolean = false;
 
   onCreate(options: any) {
     this.setState(new TrucoGameState());
     initializeGame(this.state);
     if (options?.difficulty) {
       this.aiDifficulty = options.difficulty as AIDifficulty;
+    }
+    if (options?.autoStart) {
+      this.autoStartEnabled = true;
     }
 
     // Register message handlers (spectators cannot act)
@@ -95,7 +99,7 @@ export class TrucoRoom extends Room<TrucoGameState> {
     console.log(`Room ${this.roomId} created`);
   }
 
-  onJoin(client: Client, options: { name?: string; spectator?: boolean } = {}) {
+  onJoin(client: Client, options: { name?: string; spectator?: boolean; position?: number } = {}) {
     if (options.spectator) {
       this.spectators.add(client.sessionId);
       this.state.spectatorCount = this.spectators.size;
@@ -103,7 +107,14 @@ export class TrucoRoom extends Room<TrucoGameState> {
       return;
     }
 
-    const position = this.getNextAvailablePosition();
+    // Use explicit position if provided (tournament mode), otherwise auto-assign
+    let position: PlayerPosition | null;
+    if (options.position !== undefined && !this.isPositionOccupied(options.position as PlayerPosition)) {
+      position = options.position as PlayerPosition;
+    } else {
+      position = this.getNextAvailablePosition();
+    }
+
     if (position === null) {
       // No position available, join as spectator
       this.spectators.add(client.sessionId);
@@ -125,6 +136,11 @@ export class TrucoRoom extends Room<TrucoGameState> {
     this.state.playerCount = this.state.players.size;
 
     console.log(`Player ${player.name} joined at position ${position} (team ${player.team})`);
+
+    // Auto-start for tournament matches
+    if (this.autoStartEnabled && this.state.playerCount === 4) {
+      setTimeout(() => this.handleStartGame(), 1500);
+    }
   }
 
   onLeave(client: Client, consented: boolean) {
@@ -280,6 +296,14 @@ export class TrucoRoom extends Room<TrucoGameState> {
   }
 
   // === Helper Methods ===
+
+  private isPositionOccupied(position: PlayerPosition): boolean {
+    let occupied = false;
+    this.state.players.forEach((p: PlayerSchema) => {
+      if (p.position === position) occupied = true;
+    });
+    return occupied;
+  }
 
   private getNextAvailablePosition(): PlayerPosition | null {
     const occupied = new Set<number>();

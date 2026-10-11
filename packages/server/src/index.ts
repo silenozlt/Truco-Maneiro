@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { TrucoRoom } from './rooms/TrucoRoom';
+import { TournamentLobbyRoom } from './rooms/TournamentLobbyRoom';
 import { registerUser, loginUser, generateToken, verifyToken, getUserStats, saveMatch } from './auth';
 
 const app = express();
@@ -18,8 +19,9 @@ const gameServer = new Server({
   }),
 });
 
-// Register room
+// Register rooms
 gameServer.define('truco', TrucoRoom);
+gameServer.define('tournament', TournamentLobbyRoom);
 
 // Auth routes
 app.post('/auth/register', async (req, res) => {
@@ -70,6 +72,21 @@ app.get('/', (_req, res) => {
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', rooms: gameServer.matchMaker?.stats?.local || 0 });
+});
+
+// List active tournament rooms
+app.get('/tournaments', async (_req, res) => {
+  try {
+    const rooms = await (gameServer.matchMaker as any).query({ name: 'tournament' });
+    const list = rooms.map((r: any) => ({
+      roomId: r.roomId,
+      clients: r.clients,
+      metadata: r.metadata,
+    }));
+    res.json(list);
+  } catch {
+    res.json([]);
+  }
 });
 
 // List active rooms for spectator mode
