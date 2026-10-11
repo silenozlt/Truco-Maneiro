@@ -145,10 +145,10 @@ export function useTournament() {
   }, []);
 
   // Join tournament queue
-  const joinQueue = useCallback(async (playerName: string, mode: 'auto' | 'partner', avatar?: string, partnerCode?: string) => {
+  const joinQueue = useCallback(async (playerName: string, mode: 'auto' | 'partner', avatar?: string, partnerCode?: string, myCode?: string) => {
     try {
       setError(null);
-      const r = await joinTournament(playerName, mode, avatar, partnerCode);
+      const r = await joinTournament(playerName, mode, avatar, partnerCode, myCode);
       setupListeners(r);
     } catch (err: any) {
       setError(err.message || 'Erro ao entrar no torneio');

@@ -62,18 +62,19 @@ export async function getActiveRooms(): Promise<Array<{ roomId: string; clients:
   }
 }
 
-export async function joinTournament(playerName: string, mode: 'auto' | 'partner', avatar?: string, partnerCode?: string): Promise<Room> {
+export async function joinTournament(playerName: string, mode: 'auto' | 'partner', avatar?: string, partnerCode?: string, myCode?: string): Promise<Room> {
   const c = getClient();
+  const opts = { name: playerName, mode, avatar, partnerCode, myCode };
   // Try to join an existing waiting tournament room
   try {
     const rooms = await c.getAvailableRooms('tournament');
     const waitingRoom = rooms.find(r => (r.metadata as any)?.phase === 'waiting' && r.clients < 8);
     if (waitingRoom) {
-      return await c.joinById(waitingRoom.roomId, { name: playerName, mode, avatar, partnerCode });
+      return await c.joinById(waitingRoom.roomId, opts);
     }
   } catch {}
   // No available room, create a new one
-  return await c.create('tournament', { name: playerName, mode, avatar, partnerCode });
+  return await c.create('tournament', opts);
 }
 
 export async function joinMatchRoom(roomId: string, playerName: string, position: number): Promise<Room> {

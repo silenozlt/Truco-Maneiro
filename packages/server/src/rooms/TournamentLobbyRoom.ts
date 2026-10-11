@@ -11,6 +11,8 @@ export class TournamentLobbyRoom extends Room<TournamentLobbyState> {
 
   private disposeTimer: NodeJS.Timeout | null = null;
   private matchResultTimeout: Map<number, NodeJS.Timeout> = new Map();
+  // Maps myCode -> sessionId for partner matching
+  private partnerCodes: Map<string, string> = new Map();
 
   onCreate(_options: any) {
     this.setState(new TournamentLobbyState());
@@ -31,7 +33,7 @@ export class TournamentLobbyRoom extends Room<TournamentLobbyState> {
     console.log(`Tournament room ${this.roomId} created`);
   }
 
-  onJoin(client: Client, options: { name?: string; avatar?: string; mode?: 'auto' | 'partner'; partnerCode?: string; rejoin?: boolean; previousId?: string } = {}) {
+  onJoin(client: Client, options: { name?: string; avatar?: string; mode?: 'auto' | 'partner'; partnerCode?: string; myCode?: string; rejoin?: boolean; previousId?: string } = {}) {
     // Handle rejoin after returning from a match
     if (options.rejoin && options.previousId) {
       const oldPlayer = this.state.players.get(options.previousId);
@@ -62,8 +64,16 @@ export class TournamentLobbyRoom extends Room<TournamentLobbyState> {
 
     console.log(`Tournament: ${player.name} joined (${this.state.playerCount}/8)`);
 
-    if (options.mode === 'partner' && options.partnerCode) {
-      this.handlePartnerJoin(client.sessionId, options.partnerCode);
+    if (options.mode === 'partner') {
+      // Register this player's code for partner matching
+      if (options.myCode) {
+        this.partnerCodes.set(options.myCode, client.sessionId);
+      }
+      // Try to match with a partner using their code
+      if (options.partnerCode) {
+        this.handlePartnerJoin(client.sessionId, options.partnerCode);
+      }
+      // If no partnerCode, player waits for someone to enter their code
     } else {
       this.tryAutoPair(client.sessionId);
     }
@@ -112,13 +122,15 @@ export class TournamentLobbyRoom extends Room<TournamentLobbyState> {
   }
 
   private handlePartnerJoin(sessionId: string, partnerCode: string) {
-    // partnerCode is the sessionId of the partner who joined first
-    const partner = this.state.players.get(partnerCode);
-    if (partner && !partner.teamId) {
-      this.formTeam(sessionId, partnerCode);
+    // Look up the partner's sessionId from their code
+    const partnerId = this.partnerCodes.get(partnerCode);
+    if (partnerId) {
+      const partner = this.state.players.get(partnerId);
+      if (partner && !partner.teamId) {
+        this.formTeam(sessionId, partnerId);
+      }
     }
     // If partner not found yet, the player waits.
-    // Their sessionId is their code for the partner to use.
   }
 
   private formTeam(player1Id: string, player2Id: string) {
@@ -340,6 +352,11 @@ export class TournamentLobbyRoom extends Room<TournamentLobbyState> {
   private removePlayerAndCleanup(sessionId: string) {
     const player = this.state.players.get(sessionId);
     if (!player) return;
+
+    // Remove partner code mapping
+    this.partnerCodes.forEach((sid, code) => {
+      if (sid === sessionId) this.partnerCodes.delete(code);
+    });
 
     // If player had a team, remove the team and unpair the partner
     if (player.teamId) {

@@ -34,6 +34,24 @@ function TorneioContent() {
   const [partnerCode, setPartnerCode] = useState('');
   const [phase, setPhase] = useState<'entry' | 'queue' | 'bracket' | 'finished'>('entry');
   const [hasReconnected, setHasReconnected] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Generate a stable partner code for this player (used before connecting)
+  const [myCode] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    let code = sessionStorage.getItem('tournament_my_code');
+    if (!code) {
+      code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      sessionStorage.setItem('tournament_my_code', code);
+    }
+    return code;
+  });
+
+  const handleCopyCode = () => {
+    navigator.clipboard?.writeText(myCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // On mount: check if returning from a match (reconnect + report result)
   useEffect(() => {
@@ -88,7 +106,7 @@ function TorneioContent() {
   }, [pendingMatch]);
 
   const handleJoinQueue = async () => {
-    await joinQueue(playerName, mode, avatar, mode === 'partner' ? partnerCode : undefined);
+    await joinQueue(playerName, mode, avatar, mode === 'partner' ? partnerCode : undefined, mode === 'partner' ? myCode : undefined);
   };
 
   const handleBack = () => {
@@ -141,20 +159,44 @@ function TorneioContent() {
           )}
 
           {mode === 'partner' && (
-            <div>
-              <label className="block text-green-200 text-xs font-bold mb-2">
-                Codigo do parceiro
-              </label>
-              <input
-                type="text"
-                placeholder="Cole o codigo do seu parceiro..."
-                value={partnerCode}
-                onChange={(e) => setPartnerCode(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-green-800/50 border border-green-600/50 text-white text-sm focus:outline-none focus:border-amber-400 placeholder-green-400/50"
-              />
-              <p className="text-green-300/60 text-xs mt-2">
-                Um jogador entra primeiro e compartilha seu codigo. O segundo entra com o codigo do parceiro.
-              </p>
+            <div className="space-y-4">
+              {/* My code - prominent display */}
+              <div className="bg-amber-900/20 rounded-xl p-4 border border-amber-600/30">
+                <p className="text-amber-400 text-xs font-bold mb-2">Seu codigo - envie para seu parceiro:</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-green-900/60 px-4 py-3 rounded-lg text-amber-400 text-lg font-mono font-bold text-center tracking-widest">
+                    {myCode}
+                  </code>
+                  <button
+                    onClick={handleCopyCode}
+                    className={`px-4 py-3 rounded-lg text-sm font-bold cursor-pointer transition-all ${
+                      copied
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-amber-600 hover:bg-amber-500 text-white'
+                    }`}
+                  >
+                    {copied ? 'Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Partner's code input */}
+              <div>
+                <label className="block text-green-200 text-xs font-bold mb-2">
+                  Codigo do parceiro (se voce recebeu um):
+                </label>
+                <input
+                  type="text"
+                  placeholder="Cole o codigo aqui..."
+                  value={partnerCode}
+                  onChange={(e) => setPartnerCode(e.target.value.toUpperCase())}
+                  maxLength={6}
+                  className="w-full px-4 py-3 rounded-lg bg-green-800/50 border border-green-600/50 text-white text-lg font-mono text-center tracking-widest focus:outline-none focus:border-amber-400 placeholder-green-400/50 uppercase"
+                />
+                <p className="text-green-300/60 text-xs mt-2">
+                  Um jogador compartilha seu codigo. O outro cola aqui. Ambos clicam em &quot;Buscar Torneio&quot;.
+                </p>
+              </div>
             </div>
           )}
 
@@ -191,19 +233,23 @@ function TorneioContent() {
           </p>
         </div>
 
-        {/* My partner code (for partner mode) */}
+        {/* My partner code - always visible when no team */}
         {!myTeam && (
-          <div className="bg-green-800/40 rounded-xl p-4 border border-green-700/30 mb-4">
-            <p className="text-green-200 text-xs font-bold mb-1">Seu codigo (compartilhe com seu parceiro):</p>
+          <div className="bg-amber-900/20 rounded-xl p-4 border border-amber-600/30 mb-4">
+            <p className="text-amber-400 text-xs font-bold mb-2">Seu codigo - envie para seu parceiro:</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 bg-green-900/60 px-3 py-2 rounded text-amber-400 text-xs font-mono break-all">
-                {sessionId}
+              <code className="flex-1 bg-green-900/60 px-4 py-3 rounded-lg text-amber-400 text-lg font-mono font-bold text-center tracking-widest">
+                {myCode}
               </code>
               <button
-                onClick={() => navigator.clipboard?.writeText(sessionId)}
-                className="px-3 py-2 bg-green-700/50 rounded text-green-200 text-xs hover:bg-green-600/50 cursor-pointer transition-colors"
+                onClick={handleCopyCode}
+                className={`px-4 py-3 rounded-lg text-sm font-bold cursor-pointer transition-all ${
+                  copied
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-amber-600 hover:bg-amber-500 text-white'
+                }`}
               >
-                Copiar
+                {copied ? 'Copiado!' : 'Copiar'}
               </button>
             </div>
           </div>
