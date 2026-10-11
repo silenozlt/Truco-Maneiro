@@ -14,7 +14,7 @@ import ChatBox, { PlayerBubble } from '../../components/game/ChatBox';
 import Button from '../../components/ui/Button';
 import { useAudio } from '../../hooks/useAudio';
 import { recordMatch } from '../../lib/stats';
-import { initializeAdMob, showInterstitial } from '../../lib/admob';
+import { initializeAdMob, showInterstitial, showBanner, hideBanner } from '../../lib/admob';
 
 // Dynamic import for 3D table (heavy, SSR incompatible)
 const Table3D = dynamic(() => import('../../components/game/Table3D'), {
@@ -65,12 +65,15 @@ function GameContent() {
   // Audio
   const { muted, initialize: initializeAudio, toggleMute: handleToggleMute, playSound: playSoundFn } = useAudio(gameState, sessionId);
 
-  // Initialize audio on first click + AdMob
+  // Initialize audio on first click + AdMob + Banner
   useEffect(() => {
-    initializeAdMob();
+    initializeAdMob().then(() => showBanner());
     const handler = () => { initializeAudio(); window.removeEventListener('click', handler); };
     window.addEventListener('click', handler);
-    return () => window.removeEventListener('click', handler);
+    return () => {
+      window.removeEventListener('click', handler);
+      hideBanner();
+    };
   }, [initializeAudio]);
 
   // Track truco stats

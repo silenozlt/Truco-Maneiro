@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Button from '../components/ui/Button';
 import { FREE_AVATARS, PREMIUM_AVATARS, AVATARS, loadAvatar, saveAvatar } from '../lib/avatars';
 import { isAvatarUnlocked, unlockAvatar } from '../lib/premium';
-import { showRewarded } from '../lib/admob';
+import { initializeAdMob, showRewarded, showBanner, hideBanner } from '../lib/admob';
 
 export default function Home() {
   const router = useRouter();
@@ -20,6 +20,8 @@ export default function Home() {
     setUnlockedPremium(
       PREMIUM_AVATARS.filter((a) => isAvatarUnlocked(a))
     );
+    initializeAdMob().then(() => showBanner());
+    return () => { hideBanner(); };
   }, []);
 
   const handleSelectAvatar = (a: string) => {
